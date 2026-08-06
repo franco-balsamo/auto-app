@@ -17,7 +17,9 @@ create table vehicles (
   plate text not null,          -- patente, sirve para calcular mes de VTV
   current_km int default 0,
   photo_url text,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  unique (user_id, plate)       -- evita cargar el mismo auto dos veces; no global porque un auto puede compartirse entre cuentas familiares
 );
 
 -- ---------------------------------------------------------
@@ -36,7 +38,8 @@ create table expenses (
   expense_date date not null default current_date,
   note text,
   receipt_photo_url text,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
 -- ---------------------------------------------------------
@@ -52,7 +55,8 @@ create table documents (
   type document_type not null,
   file_url text not null,
   expiration_date date,          -- null = no vence (ej. cédula)
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
 -- ---------------------------------------------------------
@@ -64,9 +68,10 @@ create table reminders (
   title text not null,           -- ej. "Cambio de aceite"
   due_date date,
   due_km int,
-  status text not null default 'pending', -- pending | done | dismissed
-  source text not null default 'manual',  -- manual | document | preset
-  created_at timestamptz default now()
+  status text not null default 'pending' check (status in ('pending', 'done', 'dismissed')),
+  source text not null default 'manual' check (source in ('manual', 'document', 'preset')),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
 -- ---------------------------------------------------------
@@ -86,16 +91,26 @@ create table workshops (
   phone text,
   hours jsonb,                    -- horarios por día
   source text not null default 'google_places', -- google_places | manual
-  claimed_by_user_id uuid references auth.users(id), -- null = sin reclamar
+  claimed_by_user_id uuid references auth.users(id) on delete set null, -- null = sin reclamar
   is_promoted boolean default false, -- ficha destacada (paga)
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
--- índice espacial para búsquedas por cercanía (requiere extensión postgis)
--- create extension if not exists postgis;
--- alter table workshops add column geog geography(Point, 4326)
---   generated always as (ST_MakePoint(lng, lat)::geography) stored;
--- create index workshops_geog_idx on workshops using gist (geog);
+-- índice espacial para búsquedas por cercanía
+create extension if not exists postgis;
+
+-- Nota: postgis trae spatial_ref_sys sin RLS (tabla de referencia de
+-- sistemas de coordenadas, de solo lectura) — el linter de Supabase la
+-- marca ERROR ("RLS Disabled in Public"). No se puede corregir desde acá:
+-- la tabla pertenece a la extensión y ni el owner del proyecto tiene
+-- permiso para alterarla (`must be owner of table spatial_ref_sys`).
+-- Limitación conocida de postgis en Supabase managed, no de este schema.
+
+alter table workshops add column geog geography(Point, 4326)
+  generated always as (ST_MakePoint(lng, lat)::geography) stored;
+
+create index workshops_geog_idx on workshops using gist (geog);
 
 -- ---------------------------------------------------------
 -- RESEÑAS
@@ -107,7 +122,8 @@ create table reviews (
   rating int not null check (rating between 1 and 5),
   comment text,
   photo_url text,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
 -- ---------------------------------------------------------
@@ -119,8 +135,9 @@ create table quote_requests (
   vehicle_id uuid not null references vehicles(id) on delete cascade,
   description text not null,      -- ej. "cambio de embrague"
   category workshop_category,
-  status text not null default 'open', -- open | closed
-  created_at timestamptz default now()
+  status text not null default 'open' check (status in ('open', 'closed')),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
 create table quote_responses (
@@ -129,8 +146,26 @@ create table quote_responses (
   workshop_id uuid not null references workshops(id) on delete cascade,
   price_estimate numeric(12,2),
   message text,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
+
+-- ---------------------------------------------------------
+-- ÍNDICES — columnas que las subqueries `exists` de las policies RLS
+-- evalúan en cada request, más las FKs que el advisor de Supabase marca
+-- sin índice.
+-- ---------------------------------------------------------
+create index vehicles_user_id_idx on vehicles (user_id);
+create index expenses_vehicle_id_idx on expenses (vehicle_id);
+create index documents_vehicle_id_idx on documents (vehicle_id);
+create index reminders_vehicle_id_idx on reminders (vehicle_id);
+create index workshops_claimed_by_user_id_idx on workshops (claimed_by_user_id);
+create index reviews_user_id_idx on reviews (user_id);
+create index reviews_workshop_id_idx on reviews (workshop_id);
+create index quote_requests_user_id_idx on quote_requests (user_id);
+create index quote_requests_vehicle_id_idx on quote_requests (vehicle_id);
+create index quote_responses_quote_request_id_idx on quote_responses (quote_request_id);
+create index quote_responses_workshop_id_idx on quote_responses (workshop_id);
 
 -- ---------------------------------------------------------
 -- Notas de diseño

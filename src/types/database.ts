@@ -11,6 +11,8 @@ export type DocumentType =
 export type WorkshopCategory =
   | 'lubricentro' | 'mecanico' | 'lavadero' | 'gomeria' | 'casa_de_escape';
 
+export type QuoteRequestStatus = 'open' | 'closed';
+
 export interface Vehicle {
   id: string;
   user_id: string;
@@ -21,6 +23,7 @@ export interface Vehicle {
   current_km: number;
   photo_url: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface Expense {
@@ -33,6 +36,7 @@ export interface Expense {
   note: string | null;
   receipt_photo_url: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface VehicleDocument {
@@ -42,6 +46,7 @@ export interface VehicleDocument {
   file_url: string;
   expiration_date: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface Reminder {
@@ -53,6 +58,7 @@ export interface Reminder {
   status: 'pending' | 'done' | 'dismissed';
   source: 'manual' | 'document' | 'preset';
   created_at: string;
+  updated_at: string;
 }
 
 export interface Workshop {
@@ -68,6 +74,7 @@ export interface Workshop {
   claimed_by_user_id: string | null;
   is_promoted: boolean;
   created_at: string;
+  updated_at: string;
 }
 
 export interface Review {
@@ -78,4 +85,26 @@ export interface Review {
   comment: string | null;
   photo_url: string | null;
   created_at: string;
+  updated_at: string;
+}
+
+export interface QuoteRequest {
+  id: string;
+  user_id: string;
+  vehicle_id: string;
+  description: string;
+  category: WorkshopCategory | null;
+  status: QuoteRequestStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuoteResponse {
+  id: string;
+  quote_request_id: string;
+  workshop_id: string;
+  price_estimate: number | null;
+  message: string | null;
+  created_at: string;
+  updated_at: string;
 }
