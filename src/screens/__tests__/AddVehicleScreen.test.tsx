@@ -24,9 +24,9 @@ describe('AddVehicleScreen — flujo de alta de vehículo', () => {
   }
 
   it('muestra error de validación y no llama a createVehicle si faltan campos obligatorios', async () => {
-    const { getByText } = renderScreen();
+    const { getByText } = await renderScreen();
 
-    fireEvent.press(getByText('Guardar vehículo'));
+    await fireEvent.press(getByText('Guardar vehículo'));
 
     await waitFor(() =>
       expect(getByText('Marca, modelo y patente son obligatorios')).toBeTruthy()
@@ -36,12 +36,12 @@ describe('AddVehicleScreen — flujo de alta de vehículo', () => {
 
   it('crea el vehículo y vuelve atrás cuando el formulario es válido', async () => {
     createVehicle.mockResolvedValue({ error: null });
-    const { getByText, getByPlaceholderText } = renderScreen();
+    const { getByText, getByPlaceholderText } = await renderScreen();
 
-    fireEvent.changeText(getByPlaceholderText('Volkswagen'), 'Ford');
-    fireEvent.changeText(getByPlaceholderText('Gol Trend'), 'Fiesta');
-    fireEvent.changeText(getByPlaceholderText('AB123CD'), 'ab123cd');
-    fireEvent.press(getByText('Guardar vehículo'));
+    await fireEvent.changeText(getByPlaceholderText('Volkswagen'), 'Ford');
+    await fireEvent.changeText(getByPlaceholderText('Gol Trend'), 'Fiesta');
+    await fireEvent.changeText(getByPlaceholderText('AB123CD'), 'ab123cd');
+    await fireEvent.press(getByText('Guardar vehículo'));
 
     await waitFor(() => expect(goBack).toHaveBeenCalled());
     expect(createVehicle).toHaveBeenCalledWith(
@@ -51,12 +51,12 @@ describe('AddVehicleScreen — flujo de alta de vehículo', () => {
 
   it('muestra el error del hook si createVehicle falla y no vuelve atrás', async () => {
     createVehicle.mockResolvedValue({ error: 'La patente ya está cargada' });
-    const { getByText, getByPlaceholderText } = renderScreen();
+    const { getByText, getByPlaceholderText } = await renderScreen();
 
-    fireEvent.changeText(getByPlaceholderText('Volkswagen'), 'Ford');
-    fireEvent.changeText(getByPlaceholderText('Gol Trend'), 'Fiesta');
-    fireEvent.changeText(getByPlaceholderText('AB123CD'), 'AB123CD');
-    fireEvent.press(getByText('Guardar vehículo'));
+    await fireEvent.changeText(getByPlaceholderText('Volkswagen'), 'Ford');
+    await fireEvent.changeText(getByPlaceholderText('Gol Trend'), 'Fiesta');
+    await fireEvent.changeText(getByPlaceholderText('AB123CD'), 'AB123CD');
+    await fireEvent.press(getByText('Guardar vehículo'));
 
     await waitFor(() => expect(getByText('La patente ya está cargada')).toBeTruthy());
     expect(goBack).not.toHaveBeenCalled();

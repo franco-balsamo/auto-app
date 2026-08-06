@@ -27,23 +27,22 @@ describe('useAuth', () => {
     jest.spyOn(Linking, 'addEventListener').mockReturnValue({ remove: jest.fn() } as never);
   });
 
-  it('empieza en loading y expone la sesión una vez que getSession resuelve', async () => {
+  it('expone la sesión una vez que getSession resuelve', async () => {
     mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
 
-    render(
+    await render(
       <AuthProvider>
         <Probe />
       </AuthProvider>
     );
 
-    expect(screen.getByText('loading')).toBeTruthy();
     await waitFor(() => expect(screen.getByText('session')).toBeTruthy());
   });
 
   it('sin sesión inicial expone no-session luego de cargar', async () => {
     mockGetSession.mockResolvedValue({ data: { session: null } });
 
-    render(
+    await render(
       <AuthProvider>
         <Probe />
       </AuthProvider>

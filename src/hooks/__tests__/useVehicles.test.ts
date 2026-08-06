@@ -24,14 +24,14 @@ describe('useVehicles', () => {
   });
 
   it('carga los vehículos del usuario al montar', async () => {
-    const { result } = renderHook(() => useVehicles());
+    const { result } = await renderHook(() => useVehicles());
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.vehicles).toHaveLength(1);
     expect(result.current.error).toBeNull();
   });
 
   it('createVehicle inserta con el user_id de la sesión y refresca la lista', async () => {
-    const { result } = renderHook(() => useVehicles());
+    const { result } = await renderHook(() => useVehicles());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     let response: { error: string | null } | undefined;
@@ -54,7 +54,7 @@ describe('useVehicles', () => {
 
   it('createVehicle sin sesión activa no inserta y devuelve error', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
-    const { result } = renderHook(() => useVehicles());
+    const { result } = await renderHook(() => useVehicles());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     let response: { error: string | null } | undefined;
