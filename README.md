@@ -73,3 +73,16 @@ store. `eas.projectId` todavía no está seteado — lo genera `eas init`
    deliberadamente no incluido para no romper `eas build` sin
    `SENTRY_AUTH_TOKEN`/org/project) para crash reporting nativo y upload
    de source maps
+6. Foto de factura + OCR en `AddExpenseScreen.tsx` — requiere elegir
+   proveedor: ML Kit on-device (necesita build nativo, no anda en Expo Go)
+   o Google Vision API (necesita API key, sí anda en Expo Go)
+7. `app.json` no tiene `icon`/`splash` ni existe carpeta `assets/` — falta
+   el arte real (paleta grafito/papel crudo/ámbar del wireframe). Sin esto
+   `eas build` usa el ícono default de Expo, no es bloqueante pero no
+   queda para publicar en stores
+8. GitHub Actions no corre ningún workflow en este repo (permisos
+   `enabled: true`, workflow indexado como `active`, pero
+   `/actions/runs` siempre da 0 y no se crea check-suite de la app
+   `github-actions` ni con push ni con PR/merge) — parece un bloqueo a
+   nivel de cuenta de GitHub, no del repo. Pendiente ticket a
+   support.github.com
