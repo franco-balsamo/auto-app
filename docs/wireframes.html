@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Wireframes — App Mantenimiento de Auto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#23262B;
+    --paper:#EDE7DA;
+    --paper-2:#E3DCCB;
+    --amber:#D98E04;
+    --green:#3F6B4F;
+    --rust:#B44B3E;
+    --steel:#5B6B73;
+    --white:#FBF9F4;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--ink);
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    padding:40px 24px 80px;
+  }
+  .intro{
+    max-width:1100px;
+    margin:0 auto 40px;
+    color:var(--paper);
+  }
+  .intro h1{
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    font-size:28px;
+    margin:0 0 8px;
+  }
+  .intro p{
+    color:#B9B4A6;
+    font-size:14px;
+    max-width:640px;
+    line-height:1.5;
+  }
+  .rig{
+    max-width:1100px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:32px;
+  }
+  .phone-wrap{ display:flex; flex-direction:column; align-items:center; }
+  .phone-label{
+    font-family:'JetBrains Mono',monospace;
+    color:var(--amber);
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    margin-bottom:12px;
+  }
+  .phone{
+    width:300px;
+    height:620px;
+    background:var(--paper);
+    border-radius:32px;
+    border:6px solid #14161A;
+    overflow:hidden;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+  .statusbar{
+    height:20px;
+    background:var(--paper);
+  }
+  .screen{
+    flex:1;
+    overflow-y:auto;
+    padding:14px 14px 20px;
+  }
+
+  /* ---------- shared components ---------- */
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--steel);
+  }
+  .card{
+    background:var(--white);
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:10px;
+    border:1px solid #DCD5C4;
+  }
+  .stamp{
+    width:46px;height:46px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    border:2px dashed currentColor;
+    font-family:'Oswald',sans-serif;
+    font-size:9px;text-transform:uppercase;letter-spacing:0.03em;
+    transform:rotate(-6deg);
+    flex-shrink:0;
+    text-align:center;
+    line-height:1.1;
+  }
+  .stamp.ok{ color:var(--green); }
+  .stamp.warn{ color:var(--amber); }
+  .stamp.bad{ color:var(--rust); }
+  .pill{
+    display:inline-block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    padding:3px 8px;
+    border-radius:20px;
+    background:var(--paper-2);
+    color:var(--steel);
+    margin-right:6px;
+  }
+  .pill.active{ background:var(--ink); color:var(--paper); }
+  .btn{
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    font-size:12px;
+    text-align:center;
+    padding:11px;
+    border-radius:8px;
+    font-weight:600;
+  }
+  .btn.primary{ background:var(--ink); color:var(--white); }
+  .btn.ghost{ background:transparent; color:var(--ink); border:1.5px solid var(--ink); }
+
+  /* ---------- HOME ---------- */
+  .plate{
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:10px;
+    padding:14px;
+    margin-bottom:12px;
+  }
+  .plate .top{ display:flex; justify-content:space-between; align-items:flex-start; }
+  .plate h2{
+    font-family:'Oswald',sans-serif;
+    font-size:20px; margin:2px 0 2px;
+    text-transform:uppercase;
+  }
+  .plate .patente{
+    font-family:'JetBrains Mono',monospace;
+    background:var(--paper);
+    color:var(--ink);
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:4px;
+    font-size:12px;
+    letter-spacing:0.08em;
+    margin-top:6px;
+  }
+  .km{ text-align:right; }
+  .km .num{ font-family:'Oswald',sans-serif; font-size:22px; }
+  .km .lbl{ font-family:'JetBrains Mono',monospace; font-size:8px; color:#B9B4A6; }
+
+  .quick-actions{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+
+  .list-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #E7E1D2; font-size:13px; }
+  .list-row:last-child{ border-bottom:none; }
+  .list-row .cat{ font-weight:600; }
+  .list-row .meta{ color:var(--steel); font-size:11px; }
+  .list-row .amt{ font-family:'JetBrains Mono',monospace; }
+
+  /* ---------- FICHA ---------- */
+  .ring-wrap{ display:flex; gap:12px; align-items:center; margin-bottom:12px; }
+  .semaforo{
+    width:64px;height:64px;border-radius:50%;
+    background:conic-gradient(var(--green) 0 60%, var(--amber) 60% 85%, var(--rust) 85% 100%);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .semaforo .inner{ width:48px;height:48px;border-radius:50%;background:var(--white); display:flex;align-items:center;justify-content:center; font-family:'Oswald',sans-serif; font-size:11px; text-align:center; line-height:1.1; }
+  .tabs{ display:flex; gap:6px; margin-bottom:10px; }
+  .tab{ font-family:'JetBrains Mono',monospace; font-size:10px; padding:6px 10px; border-radius:6px; background:var(--paper-2); text-transform:uppercase; }
+  .tab.active{ background:var(--ink); color:var(--paper); }
+  .timeline{ position:relative; padding-left:16px; }
+  .timeline::before{ content:''; position:absolute; left:4px; top:4px; bottom:4px; width:2px; background:#DCD5C4; }
+  .tl-item{ position:relative; margin-bottom:14px; }
+  .tl-item::before{ content:''; position:absolute; left:-16px; top:3px; width:9px; height:9px; border-radius:50%; background:var(--ink); }
+  .tl-item .date{ font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--steel); }
+  .tl-item .title{ font-weight:600; font-size:13px; }
+  .tl-item .sub{ font-size:11px; color:var(--steel); }
+
+  /* ---------- DIRECTORIO ---------- */
+  .search{
+    background:var(--white); border:1px solid #DCD5C4; border-radius:8px;
+    padding:9px 10px; font-size:12px; color:var(--steel); margin-bottom:8px;
+  }
+  .chips{ display:flex; gap:6px; overflow-x:auto; margin-bottom:10px; }
+  .map-block{
+    height:120px; border-radius:10px; margin-bottom:10px;
+    background:repeating-linear-gradient(45deg, #DCD5C4, #DCD5C4 6px, var(--paper-2) 6px, var(--paper-2) 12px);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--steel); text-transform:uppercase;
+    position:relative;
+  }
+  .pin{ position:absolute; width:14px;height:14px;border-radius:50% 50% 50% 0; background:var(--rust); transform:rotate(-45deg); }
+  .p1{ top:30%; left:35%; } .p2{ top:55%; left:60%; } .p3{ top:65%; left:25%; }
+  .taller{ display:flex; gap:10px; align-items:flex-start; }
+  .taller .info{ flex:1; }
+  .taller .name{ font-weight:700; font-size:13px; }
+  .taller .rubro{ font-size:11px; color:var(--steel); }
+  .rating{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--amber); }
+  .dist{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--steel); text-align:right; }
+
+  .note{
+    max-width:1100px; margin:32px auto 0; color:#B9B4A6; font-size:12px; line-height:1.6;
+  }
+  .note b{ color:var(--paper); }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Wireframes — 3 pantallas core</h1>
+  <p>Low-fi funcional, no diseño final. El motivo del "sello de taller" (círculo punteado, como el sello de una libreta de service) se usa como firma visual para estados: al día, por vencer, vencido — y para rating de talleres.</p>
+</div>
+
+<div class="rig">
+
+  <!-- HOME -->
+  <div class="phone-wrap">
+    <div class="phone-label">01 · Home</div>
+    <div class="phone">
+      <div class="statusbar"></div>
+      <div class="screen">
+        <div class="plate">
+          <div class="top">
+            <div>
+              <div class="eyebrow" style="color:#B9B4A6">Mi vehículo</div>
+              <h2>Corsa 1.4</h2>
+              <span class="patente">AB 123 CD</span>
+            </div>
+            <div class="km">
+              <div class="num">84.320</div>
+              <div class="lbl">KM ACTUALES</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="display:flex; gap:10px; align-items:center;">
+          <div class="stamp warn">POR<br>VENCER</div>
+          <div>
+            <div class="eyebrow">Próximo vencimiento</div>
+            <div style="font-weight:700; font-size:14px;">VTV — vence en 12 días</div>
+            <div style="font-size:11px; color:var(--steel);">Patente termina en 4 → mes de abril</div>
+          </div>
+        </div>
+
+        <div class="quick-actions">
+          <div class="btn primary">+ Cargar gasto</div>
+          <div class="btn ghost">Buscar taller</div>
+        </div>
+
+        <div class="card">
+          <div class="eyebrow" style="margin-bottom:8px;">Últimos gastos</div>
+          <div class="list-row">
+            <div><div class="cat">Cambio de aceite</div><div class="meta">12 jul · 84.000 km</div></div>
+            <div class="amt">$45.000</div>
+          </div>
+          <div class="list-row">
+            <div><div class="cat">Nafta</div><div class="meta">28 jun</div></div>
+            <div class="amt">$18.500</div>
+          </div>
+          <div class="list-row">
+            <div><div class="cat">Seguro</div><div class="meta">01 jun · mensual</div></div>
+            <div class="amt">$22.000</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FICHA DEL VEHÍCULO -->
+  <div class="phone-wrap">
+    <div class="phone-label">02 · Ficha del vehículo</div>
+    <div class="phone">
+      <div class="statusbar"></div>
+      <div class="screen">
+        <div class="eyebrow">← Volver</div>
+        <div class="ring-wrap">
+          <div class="semaforo"><div class="inner">2 de 3<br>al día</div></div>
+          <div>
+            <div style="font-family:'Oswald',sans-serif; font-size:16px; text-transform:uppercase;">Corsa 1.4</div>
+            <div style="font-size:11px; color:var(--steel);">AB 123 CD · 2015</div>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab active">Historial</div>
+          <div class="tab">Documentos</div>
+          <div class="tab">Recordatorios</div>
+        </div>
+
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="date">12 JUL 2026</div>
+            <div class="title">Cambio de aceite y filtro</div>
+            <div class="sub">Lubricentro Sur · $45.000 · 84.000 km</div>
+          </div>
+          <div class="tl-item">
+            <div class="date">03 MAY 2026</div>
+            <div class="title">VTV aprobada</div>
+            <div class="sub">Planta N°4 · $95.000</div>
+          </div>
+          <div class="tl-item">
+            <div class="date">14 FEB 2026</div>
+            <div class="title">Rotación de neumáticos</div>
+            <div class="sub">Gomería Norte · $8.000</div>
+          </div>
+          <div class="tl-item">
+            <div class="date">02 DIC 2025</div>
+            <div class="title">Pastillas de freno delanteras</div>
+            <div class="sub">Taller Mario · $52.000 · 78.400 km</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIRECTORIO -->
+  <div class="phone-wrap">
+    <div class="phone-label">03 · Directorio geolocalizado</div>
+    <div class="phone">
+      <div class="statusbar"></div>
+      <div class="screen">
+        <div class="search">🔍 Buscar lubricentro, gomería...</div>
+        <div class="chips">
+          <span class="pill active">Todos</span>
+          <span class="pill">Lubricentro</span>
+          <span class="pill">Mecánico</span>
+          <span class="pill">Gomería</span>
+          <span class="pill">Lavadero</span>
+        </div>
+
+        <div class="map-block">
+          MAPA · GPS DEL USUARIO
+          <div class="pin p1"></div><div class="pin p2"></div><div class="pin p3"></div>
+        </div>
+
+        <div class="card taller">
+          <div class="stamp ok" style="width:38px;height:38px;font-size:8px;">4.8<br>★★★★★</div>
+          <div class="info">
+            <div class="name">Lubricentro Sur</div>
+            <div class="rubro">Lubricentro · Abierto ahora</div>
+            <span class="rating">32 reseñas de la comunidad</span>
+          </div>
+          <div class="dist">0.8 km</div>
+        </div>
+
+        <div class="card taller">
+          <div class="stamp ok" style="width:38px;height:38px;font-size:8px;">4.5<br>★★★★★</div>
+          <div class="info">
+            <div class="name">Gomería Norte</div>
+            <div class="rubro">Gomería · Abierto ahora</div>
+            <span class="rating">18 reseñas</span>
+          </div>
+          <div class="dist">1.4 km</div>
+        </div>
+
+        <div class="card taller">
+          <div class="stamp warn" style="width:38px;height:38px;font-size:8px;">4.1<br>★★★★</div>
+          <div class="info">
+            <div class="name">Taller Mario</div>
+            <div class="rubro">Mecánico · Cierra 19hs</div>
+            <span class="rating">Sin reclamar por el dueño</span>
+          </div>
+          <div class="dist">2.1 km</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="note">
+  <b>Notas de diseño:</b> paleta pensada en "taller/garage" en vez del cliché de app fintech: grafito (fondo/texto), papel crudo (cards), ámbar para alertas por vencer, verde para al día, rojo óxido para vencido. Tipografía Oswald (condensada, industrial) para títulos/números grandes, Inter para texto de lectura, JetBrains Mono para datos técnicos (patente, km, fechas) — refuerza la idea de "ficha técnica".
+</div>
+
+</body>
+</html>

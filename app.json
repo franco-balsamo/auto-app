@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "auto-app",
+    "slug": "auto-app",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "autoapp",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.tuempresa.autoapp",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Usamos tu ubicación para mostrarte talleres, gomerías y lavaderos cercanos."
+      }
+    },
+    "android": {
+      "package": "com.tuempresa.autoapp",
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Usamos tu ubicación para mostrarte talleres cercanos."
+        }
+      ]
+    ]
+  }
+}

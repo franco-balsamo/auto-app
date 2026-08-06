@@ -1,0 +1,26 @@
+# Dependencias (se reinstalan con npm install, no van al repo)
+node_modules/
+
+# Variables de entorno con credenciales — NUNCA subir esto
+.env
+.env.local
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Builds nativos (si algún día hacés eject o prebuild)
+ios/
+android/
+
+# Archivos del sistema
+.DS_Store
+*.log
+
+# Editor
+.vscode/
+.idea/
+
+# TypeScript
+*.tsbuildinfo
