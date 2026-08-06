@@ -14,19 +14,33 @@ export default function AddExpenseScreen({ route, navigation }: Props) {
   const [category, setCategory] = useState<ExpenseCategory>('service');
   const [amount, setAmount] = useState('');
   const [odometerKm, setOdometerKm] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   async function handleSave() {
+    setSaving(true);
     const { error } = await supabase.from('expenses').insert({
       vehicle_id: vehicleId,
       category,
       amount: Number(amount),
       odometer_km: odometerKm ? Number(odometerKm) : null,
     });
-    if (!error) navigation.goBack();
+    setSaving(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    navigation.goBack();
   }
 
   return (
     <View style={styles.container}>
+      {error && (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
+
       <Text style={styles.label}>Categoría</Text>
       <View style={styles.chipRow}>
         {CATEGORIES.map((c) => (
@@ -44,8 +58,8 @@ export default function AddExpenseScreen({ route, navigation }: Props) {
 
       {/* TODO: foto de factura con expo-image-picker + OCR (fase 2) */}
 
-      <Pressable style={styles.saveBtn} onPress={handleSave}>
-        <Text style={styles.saveBtnText}>Guardar gasto</Text>
+      <Pressable style={[styles.saveBtn, saving && styles.saveBtnDisabled]} onPress={handleSave} disabled={saving}>
+        <Text style={styles.saveBtnText}>{saving ? 'Guardando...' : 'Guardar gasto'}</Text>
       </Pressable>
     </View>
   );
@@ -61,5 +75,8 @@ const styles = StyleSheet.create({
   chipTextActive: { color: '#EDE7DA' },
   input: { backgroundColor: '#FBF9F4', borderWidth: 1, borderColor: '#DCD5C4', borderRadius: 8, padding: 12, fontSize: 14 },
   saveBtn: { backgroundColor: '#23262B', borderRadius: 8, padding: 14, alignItems: 'center', marginTop: 28 },
+  saveBtnDisabled: { opacity: 0.6 },
   saveBtnText: { color: '#EDE7DA', fontWeight: '700', textTransform: 'uppercase', fontSize: 13 },
+  errorBox: { backgroundColor: '#F4D9D3', borderRadius: 8, padding: 10, marginBottom: 8 },
+  errorText: { color: '#B44B3E', fontSize: 12, fontWeight: '600' },
 });

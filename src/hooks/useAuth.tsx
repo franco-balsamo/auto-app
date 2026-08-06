@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { Linking } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
@@ -8,6 +9,22 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue>({ session: null, loading: true });
+
+// El magic link (autoapp://login-callback#access_token=...&refresh_token=...
+// o ...?code=...) vuelve con los datos de sesión en la query o en el
+// fragment — los juntamos en un solo mapa para no depender de cuál usa
+// Supabase.
+async function handleAuthDeepLink(url: string | null) {
+  if (!url) return;
+  const params = new URLSearchParams(url.split(/[?#]/).slice(1).join('&'));
+  const accessToken = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+  if (accessToken && refreshToken) {
+    await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+  } else if (params.get('code')) {
+    await supabase.auth.exchangeCodeForSession(params.get('code')!);
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -23,7 +40,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(newSession);
     });
 
-    return () => listener.subscription.unsubscribe();
+    Linking.getInitialURL().then(handleAuthDeepLink);
+    const urlSubscription = Linking.addEventListener('url', ({ url }) => handleAuthDeepLink(url));
+
+    return () => {
+      listener.subscription.unsubscribe();
+      urlSubscription.remove();
+    };
   }, []);
 
   return (
