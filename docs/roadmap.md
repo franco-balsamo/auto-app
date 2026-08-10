@@ -76,9 +76,15 @@ Pendiente, en orden de bloqueo real:
   hay constraint de unicidad en el schema). Pendiente menor: `photo_url`
   de `reviews` sigue sin usarse (plan de producto pide "con foto del
   trabajo hecho").
-- **Flujo "reclamar ficha" de taller**: columna `claimed_by_user_id` ya
-  existe en `workshops` — falta el flujo de reclamo (verificación +
-  pantalla de gestión básica para el dueño del taller).
+- ~~**Flujo "reclamar ficha" de taller**~~ — hecho en su versión MVP:
+  `useWorkshop` (`claimWorkshop`/`updateWorkshop`) + botón "Reclamar este
+  taller" y edición básica (nombre/dirección/teléfono) en
+  `WorkshopDetailScreen`, todo apoyado en las policies RLS existentes
+  (`claimed_by_user_id is null` para reclamar, `= auth.uid()` para
+  editar). Sin verificación real (no hay servicio de verificación de
+  identidad/negocio) — el reclamo es directo, cualquier usuario logueado
+  puede tocar "Reclamar" en una ficha sin dueño. Aceptable para dev/beta
+  cerrada, revisar antes de abrir a público.
 - **Exportar historial de vehículo a PDF**: no iniciado, ninguna
   dependencia instalada todavía.
 

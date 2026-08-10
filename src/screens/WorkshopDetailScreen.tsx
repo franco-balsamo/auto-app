@@ -1,8 +1,9 @@
-import { View, Text, TextInput, Pressable, FlatList, Linking, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable, FlatList, Linking, Alert, StyleSheet } from 'react-native';
 import { useState } from 'react';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { DirectoryStackParamList } from '@/navigation/RootNavigator';
 import { useReviews } from '@/hooks/useReviews';
+import { useWorkshop } from '@/hooks/useWorkshop';
 import { useAuth } from '@/hooks/useAuth';
 import { confirmDelete } from '@/lib/alerts';
 import { WORKSHOP_CATEGORY_LABELS } from '@/lib/workshopCategories';
@@ -34,12 +35,14 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
 }
 
 export default function WorkshopDetailScreen({ route }: Props) {
-  const { workshop } = route.params;
+  const [workshop, setWorkshop] = useState(route.params.workshop);
   const { session } = useAuth();
   const { reviews, loading, createReview, updateReview, deleteReview } = useReviews(workshop.id);
+  const { claimWorkshop, updateWorkshop } = useWorkshop(workshop.id);
 
   const myReview = reviews.find((r) => r.user_id === session?.user.id);
   const otherReviews = reviews.filter((r) => r.user_id !== session?.user.id);
+  const isOwner = workshop.claimed_by_user_id === session?.user.id;
 
   const [editing, setEditing] = useState(false);
   const [rating, setRating] = useState<number>(myReview?.rating ?? 5);
@@ -47,7 +50,52 @@ export default function WorkshopDetailScreen({ route }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [claiming, setClaiming] = useState(false);
+  const [managing, setManaging] = useState(false);
+  const [name, setName] = useState(workshop.name);
+  const [address, setAddress] = useState(workshop.address ?? '');
+  const [phone, setPhone] = useState(workshop.phone ?? '');
+  const [manageSaving, setManageSaving] = useState(false);
+  const [manageError, setManageError] = useState<string | null>(null);
+
   const avg = average(reviews);
+
+  function handleClaim() {
+    Alert.alert(
+      'Reclamar taller',
+      '¿Sos el dueño o encargado de este taller? Vas a poder editar sus datos de contacto.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Reclamar',
+          onPress: async () => {
+            setClaiming(true);
+            const { error, userId } = await claimWorkshop();
+            setClaiming(false);
+            if (error) {
+              setError(error);
+              return;
+            }
+            setWorkshop((w) => ({ ...w, claimed_by_user_id: userId ?? null }));
+          },
+        },
+      ]
+    );
+  }
+
+  async function handleManageSave() {
+    setManageSaving(true);
+    setManageError(null);
+    const input = { name: name.trim(), address: address.trim() || null, phone: phone.trim() || null };
+    const { error } = await updateWorkshop(input);
+    setManageSaving(false);
+    if (error) {
+      setManageError(error);
+      return;
+    }
+    setWorkshop((w) => ({ ...w, ...input }));
+    setManaging(false);
+  }
 
   async function handleSubmit() {
     setSaving(true);
@@ -84,6 +132,33 @@ export default function WorkshopDetailScreen({ route }: Props) {
             <Pressable onPress={() => Linking.openURL(`tel:${workshop.phone}`)}>
               <Text style={styles.phone}>{workshop.phone}</Text>
             </Pressable>
+          )}
+
+          {!workshop.claimed_by_user_id && (
+            <Pressable style={styles.claimBtn} onPress={handleClaim} disabled={claiming}>
+              <Text style={styles.claimBtnText}>{claiming ? 'Reclamando...' : 'Reclamar este taller'}</Text>
+            </Pressable>
+          )}
+
+          {isOwner && !managing && (
+            <Pressable onPress={() => setManaging(true)}>
+              <Text style={styles.actionLink}>Sos el dueño de esta ficha · Editar datos</Text>
+            </Pressable>
+          )}
+
+          {isOwner && managing && (
+            <View style={styles.reviewCard}>
+              <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Nombre del taller" />
+              <TextInput style={styles.input} value={address} onChangeText={setAddress} placeholder="Dirección" />
+              <TextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="Teléfono" keyboardType="phone-pad" />
+              {manageError && <Text style={styles.errorText}>{manageError}</Text>}
+              <Pressable style={[styles.saveBtn, manageSaving && styles.saveBtnDisabled]} onPress={handleManageSave} disabled={manageSaving}>
+                <Text style={styles.saveBtnText}>{manageSaving ? 'Guardando...' : 'Guardar cambios'}</Text>
+              </Pressable>
+              <Pressable onPress={() => setManaging(false)}>
+                <Text style={styles.actionLink}>Cancelar</Text>
+              </Pressable>
+            </View>
           )}
 
           <View style={styles.ratingRow}>
@@ -156,6 +231,8 @@ const styles = StyleSheet.create({
   category: { fontSize: 12, color: '#5B6B73', marginTop: 2, textTransform: 'uppercase' },
   meta: { fontSize: 13, color: '#5B6B73', marginTop: 6 },
   phone: { fontSize: 13, color: '#D98E04', marginTop: 4, fontWeight: '600' },
+  claimBtn: { backgroundColor: '#E3DCCB', borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 12 },
+  claimBtnText: { color: '#23262B', fontWeight: '700', fontSize: 12, textTransform: 'uppercase' },
   ratingRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 14 },
   ratingValue: { fontSize: 28, fontWeight: '700', color: '#23262B' },
   ratingCount: { fontSize: 12, color: '#5B6B73' },
