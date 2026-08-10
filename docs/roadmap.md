@@ -67,9 +67,15 @@ Pendiente, en orden de bloqueo real:
 
 ## Etapa 2 — Directorio propio + reseñas (4-6 semanas estimadas)
 
-- **Reseñas de usuarios**: el schema (`reviews`) y las policies RLS ya
-  existen — falta 100% del lado app (hook `useReviews` + UI en
-  `DirectoryScreen`/ficha de taller).
+- ~~**Reseñas de usuarios**~~ — hecho: `useReviews` (CRUD) +
+  `WorkshopDetailScreen` (ficha de taller nueva, con promedio, reseña
+  propia editable/borrable y listado de otras). `DirectoryScreen` ahora
+  navega ahí desde cada card (requirió meter Directorio en su propio
+  stack de navegación, antes era una tab plana sin detalle). Un usuario
+  no puede cargar más de una reseña por taller (enforced en la UI, no
+  hay constraint de unicidad en el schema). Pendiente menor: `photo_url`
+  de `reviews` sigue sin usarse (plan de producto pide "con foto del
+  trabajo hecho").
 - **Flujo "reclamar ficha" de taller**: columna `claimed_by_user_id` ya
   existe en `workshops` — falta el flujo de reclamo (verificación +
   pantalla de gestión básica para el dueño del taller).

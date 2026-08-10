@@ -16,7 +16,9 @@ import EditReminderScreen from '@/screens/EditReminderScreen';
 import UploadDocumentScreen from '@/screens/UploadDocumentScreen';
 import EditDocumentScreen from '@/screens/EditDocumentScreen';
 import DirectoryScreen from '@/screens/DirectoryScreen';
+import WorkshopDetailScreen from '@/screens/WorkshopDetailScreen';
 import ProfileScreen from '@/screens/ProfileScreen';
+import type { Workshop } from '@/types/database';
 
 export type HomeStackParamList = {
   Home: undefined;
@@ -31,7 +33,13 @@ export type HomeStackParamList = {
   EditDocument: { vehicleId: string; documentId: string };
 };
 
+export type DirectoryStackParamList = {
+  Directory: undefined;
+  WorkshopDetail: { workshop: Workshop & { distance_km: number } };
+};
+
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
+const DirectoryStack = createNativeStackNavigator<DirectoryStackParamList>();
 const Tabs = createBottomTabNavigator();
 
 function HomeStackNavigator() {
@@ -51,6 +59,15 @@ function HomeStackNavigator() {
   );
 }
 
+function DirectoryStackNavigator() {
+  return (
+    <DirectoryStack.Navigator>
+      <DirectoryStack.Screen name="Directory" component={DirectoryScreen} options={{ title: 'Directorio' }} />
+      <DirectoryStack.Screen name="WorkshopDetail" component={WorkshopDetailScreen} options={{ title: 'Ficha del taller' }} />
+    </DirectoryStack.Navigator>
+  );
+}
+
 export default function RootNavigator() {
   const { session, loading } = useAuth();
 
@@ -67,7 +84,7 @@ export default function RootNavigator() {
       {session ? (
         <Tabs.Navigator screenOptions={{ headerShown: false }}>
           <Tabs.Screen name="Inicio" component={HomeStackNavigator} />
-          <Tabs.Screen name="Directorio" component={DirectoryScreen} />
+          <Tabs.Screen name="Directorio" component={DirectoryStackNavigator} />
           <Tabs.Screen name="Perfil" component={ProfileScreen} />
         </Tabs.Navigator>
       ) : (

@@ -2,21 +2,19 @@ import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
 import { useState } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 import { useNearbyWorkshops } from '@/hooks/useNearbyWorkshops';
+import { WORKSHOP_CATEGORIES, WORKSHOP_CATEGORY_LABELS as CATEGORY_LABELS } from '@/lib/workshopCategories';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { DirectoryStackParamList } from '@/navigation/RootNavigator';
 import type { WorkshopCategory } from '@/types/database';
 
-const CATEGORIES: WorkshopCategory[] = ['lubricentro', 'mecanico', 'lavadero', 'gomeria', 'casa_de_escape'];
-const CATEGORY_LABELS: Record<WorkshopCategory, string> = {
-  lubricentro: 'Lubricentro',
-  mecanico: 'Mecánico',
-  lavadero: 'Lavadero',
-  gomeria: 'Gomería',
-  casa_de_escape: 'Escape',
-};
+const CATEGORIES = WORKSHOP_CATEGORIES;
 
 // Fallback si todavía no hay talleres cargados en el radio (centro de CABA).
 const DEFAULT_REGION = { latitude: -34.6037, longitude: -58.3816, latitudeDelta: 0.1, longitudeDelta: 0.1 };
 
-export default function DirectoryScreen() {
+type Props = NativeStackScreenProps<DirectoryStackParamList, 'Directory'>;
+
+export default function DirectoryScreen({ navigation }: Props) {
   const [category, setCategory] = useState<WorkshopCategory | undefined>(undefined);
   const { workshops, loading, error } = useNearbyWorkshops(category);
 
@@ -52,10 +50,10 @@ export default function DirectoryScreen() {
         data={workshops}
         keyExtractor={(w) => w.id}
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <Pressable style={styles.card} onPress={() => navigation.navigate('WorkshopDetail', { workshop: item })}>
             <Text style={styles.name}>{item.name}</Text>
             <Text style={styles.meta}>{CATEGORY_LABELS[item.category]} · {item.distance_km.toFixed(1)} km</Text>
-          </View>
+          </Pressable>
         )}
         ListEmptyComponent={!loading ? <Text style={styles.hint}>No encontramos talleres en el radio configurado.</Text> : null}
       />
