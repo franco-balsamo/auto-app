@@ -8,9 +8,13 @@ import LoginScreen from '@/screens/LoginScreen';
 import HomeScreen from '@/screens/HomeScreen';
 import VehicleDetailScreen from '@/screens/VehicleDetailScreen';
 import AddVehicleScreen from '@/screens/AddVehicleScreen';
+import EditVehicleScreen from '@/screens/EditVehicleScreen';
 import AddExpenseScreen from '@/screens/AddExpenseScreen';
+import EditExpenseScreen from '@/screens/EditExpenseScreen';
 import AddReminderScreen from '@/screens/AddReminderScreen';
+import EditReminderScreen from '@/screens/EditReminderScreen';
 import UploadDocumentScreen from '@/screens/UploadDocumentScreen';
+import EditDocumentScreen from '@/screens/EditDocumentScreen';
 import DirectoryScreen from '@/screens/DirectoryScreen';
 import ProfileScreen from '@/screens/ProfileScreen';
 
@@ -18,9 +22,13 @@ export type HomeStackParamList = {
   Home: undefined;
   VehicleDetail: { vehicleId: string };
   AddVehicle: undefined;
+  EditVehicle: { vehicleId: string };
   AddExpense: { vehicleId: string };
+  EditExpense: { vehicleId: string; expenseId: string };
   AddReminder: { vehicleId: string };
+  EditReminder: { vehicleId: string; reminderId: string };
   UploadDocument: { vehicleId: string };
+  EditDocument: { vehicleId: string; documentId: string };
 };
 
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
@@ -32,9 +40,13 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="Home" component={HomeScreen} options={{ title: 'Mi auto' }} />
       <HomeStack.Screen name="VehicleDetail" component={VehicleDetailScreen} options={{ title: 'Ficha del vehículo' }} />
       <HomeStack.Screen name="AddVehicle" component={AddVehicleScreen} options={{ title: 'Agregar vehículo', presentation: 'modal' }} />
+      <HomeStack.Screen name="EditVehicle" component={EditVehicleScreen} options={{ title: 'Editar vehículo', presentation: 'modal' }} />
       <HomeStack.Screen name="AddExpense" component={AddExpenseScreen} options={{ title: 'Cargar gasto', presentation: 'modal' }} />
+      <HomeStack.Screen name="EditExpense" component={EditExpenseScreen} options={{ title: 'Editar gasto', presentation: 'modal' }} />
       <HomeStack.Screen name="AddReminder" component={AddReminderScreen} options={{ title: 'Nuevo recordatorio', presentation: 'modal' }} />
+      <HomeStack.Screen name="EditReminder" component={EditReminderScreen} options={{ title: 'Editar recordatorio', presentation: 'modal' }} />
       <HomeStack.Screen name="UploadDocument" component={UploadDocumentScreen} options={{ title: 'Subir documento', presentation: 'modal' }} />
+      <HomeStack.Screen name="EditDocument" component={EditDocumentScreen} options={{ title: 'Editar documento', presentation: 'modal' }} />
     </HomeStack.Navigator>
   );
 }

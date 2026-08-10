@@ -47,5 +47,23 @@ export function useDocuments(vehicleId: string) {
     [vehicleId, refetch]
   );
 
-  return { documents: documents ?? [], loading, error, refetch, uploadDocument };
+  const updateDocument = useCallback(
+    async (documentId: string, input: { type: DocumentType; expiration_date: string | null }) => {
+      const { error } = await supabase.from('documents').update(input).eq('id', documentId);
+      if (!error) await refetch();
+      return { error: error?.message ?? null };
+    },
+    [refetch]
+  );
+
+  const deleteDocument = useCallback(
+    async (documentId: string) => {
+      const { error } = await supabase.from('documents').delete().eq('id', documentId);
+      if (!error) await refetch();
+      return { error: error?.message ?? null };
+    },
+    [refetch]
+  );
+
+  return { documents: documents ?? [], loading, error, refetch, uploadDocument, updateDocument, deleteDocument };
 }

@@ -44,5 +44,32 @@ export function useReminders(vehicleId: string) {
     [refetch]
   );
 
-  return { reminders: reminders ?? [], loading, error, refetch, createReminder, markDone };
+  const updateReminder = useCallback(
+    async (reminderId: string, input: { title: string; due_date: string | null; due_km: number | null }) => {
+      const { error } = await supabase.from('reminders').update(input).eq('id', reminderId);
+      if (!error) await refetch();
+      return { error: error?.message ?? null };
+    },
+    [refetch]
+  );
+
+  const deleteReminder = useCallback(
+    async (reminderId: string) => {
+      const { error } = await supabase.from('reminders').delete().eq('id', reminderId);
+      if (!error) await refetch();
+      return { error: error?.message ?? null };
+    },
+    [refetch]
+  );
+
+  return {
+    reminders: reminders ?? [],
+    loading,
+    error,
+    refetch,
+    createReminder,
+    markDone,
+    updateReminder,
+    deleteReminder,
+  };
 }

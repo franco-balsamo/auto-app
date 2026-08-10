@@ -1,8 +1,16 @@
 import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 import { useVehicles } from '@/hooks/useVehicles';
 
 export default function HomeScreen({ navigation }: any) {
   const { vehicles, loading, error, refetch } = useVehicles();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   if (loading) return <Text style={styles.loading}>Cargando...</Text>;
 

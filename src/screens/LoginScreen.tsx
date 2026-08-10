@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import * as Linking from 'expo-linking';
 import { supabase } from '@/lib/supabase';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [sending, setSending] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,8 +22,9 @@ export default function LoginScreen() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        // scheme definido en app.json ("autoapp") + deep link de vuelta a la app
-        emailRedirectTo: 'autoapp://login-callback',
+        // Linking.createURL resuelve solo según el entorno: exp://ip:puerto/--/login-callback
+        // en Expo Go / dev client, autoapp://login-callback en build nativo standalone.
+        emailRedirectTo: Linking.createURL('login-callback'),
       },
     });
 
@@ -32,13 +36,47 @@ export default function LoginScreen() {
     }
   }
 
+  async function handleVerifyCode() {
+    if (code.trim().length < 6) {
+      setError('Ingresá el código del mail');
+      return;
+    }
+    setVerifying(true);
+    setError(null);
+
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: code.trim(),
+      type: 'email',
+    });
+
+    setVerifying(false);
+    if (error) setError(error.message);
+  }
+
   if (sent) {
     return (
       <View style={styles.container}>
         <Text style={styles.title}>Revisá tu email</Text>
         <Text style={styles.hint}>
-          Te mandamos un link a {email}. Abrilo desde el celular para entrar a la app.
+          Te mandamos un link y un código a {email}. Abrí el link desde el celular, o si no anda,
+          ingresá el código acá abajo.
         </Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="código del mail"
+          keyboardType="number-pad"
+          value={code}
+          onChangeText={setCode}
+        />
+
+        {error && <Text style={styles.error}>{error}</Text>}
+
+        <Pressable style={styles.btn} onPress={handleVerifyCode} disabled={verifying}>
+          {verifying ? <ActivityIndicator color="#EDE7DA" /> : <Text style={styles.btnText}>Confirmar código</Text>}
+        </Pressable>
+
         <Pressable onPress={() => setSent(false)}>
           <Text style={styles.link}>Usar otro email</Text>
         </Pressable>
@@ -65,6 +103,10 @@ export default function LoginScreen() {
 
       <Pressable style={styles.btn} onPress={handleSendLink} disabled={sending}>
         {sending ? <ActivityIndicator color="#EDE7DA" /> : <Text style={styles.btnText}>Enviar link</Text>}
+      </Pressable>
+
+      <Pressable onPress={() => setSent(true)}>
+        <Text style={styles.link}>Ya tengo un código</Text>
       </Pressable>
     </View>
   );

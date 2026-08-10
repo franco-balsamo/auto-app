@@ -20,7 +20,7 @@ export function useSupabaseQuery<T>(queryFn: () => PromiseLike<QueryResult<T>>, 
       setError(null);
     }
     setLoading(false);
-    // eslint-disable-next-line react-hooks/use-memo -- deps las controla el caller
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deps las controla el caller
   }, deps);
 
   useEffect(() => {

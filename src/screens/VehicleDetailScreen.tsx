@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParamList } from '@/navigation/RootNavigator';
 import { useVehicle } from '@/hooks/useVehicle';
@@ -36,10 +37,25 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
   const { vehicleId } = route.params;
   const [tab, setTab] = useState<Tab>('historial');
 
-  const { vehicle, error: vehicleError } = useVehicle(vehicleId);
-  const { expenses, loading: loadingExpenses, error: expensesError } = useExpenses(vehicleId);
-  const { documents, loading: loadingDocuments, error: documentsError } = useDocuments(vehicleId);
-  const { reminders, loading: loadingReminders, error: remindersError, markDone } = useReminders(vehicleId);
+  const { vehicle, error: vehicleError, refetch: refetchVehicle } = useVehicle(vehicleId);
+  const { expenses, loading: loadingExpenses, error: expensesError, refetch: refetchExpenses } = useExpenses(vehicleId);
+  const { documents, loading: loadingDocuments, error: documentsError, refetch: refetchDocuments } = useDocuments(vehicleId);
+  const {
+    reminders,
+    loading: loadingReminders,
+    error: remindersError,
+    refetch: refetchReminders,
+    markDone,
+  } = useReminders(vehicleId);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchVehicle();
+      refetchExpenses();
+      refetchDocuments();
+      refetchReminders();
+    }, [refetchVehicle, refetchExpenses, refetchDocuments, refetchReminders])
+  );
 
   const tabError =
     vehicleError ??
@@ -53,12 +69,17 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
         </View>
       )}
       {vehicle && (
-        <View style={styles.header}>
-          <Text style={styles.brand}>{vehicle.brand} {vehicle.model}</Text>
-          <Text style={styles.plate}>
-            {vehicle.plate} · {vehicle.year ?? '—'} · {vehicle.current_km.toLocaleString('es-AR')} km
-          </Text>
-        </View>
+        <Pressable style={styles.header} onPress={() => navigation.navigate('EditVehicle', { vehicleId })}>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.brand}>{vehicle.brand} {vehicle.model}</Text>
+              <Text style={styles.plate}>
+                {vehicle.plate} · {vehicle.year ?? '—'} · {vehicle.current_km.toLocaleString('es-AR')} km
+              </Text>
+            </View>
+            <Text style={styles.editLink}>Editar</Text>
+          </View>
+        </Pressable>
       )}
 
       <View style={styles.tabs}>
@@ -82,7 +103,7 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
             </Pressable>
           }
           renderItem={({ item }) => (
-            <View style={styles.card}>
+            <Pressable style={styles.card} onPress={() => navigation.navigate('EditExpense', { vehicleId, expenseId: item.id })}>
               <Text style={styles.date}>{formatDate(item.expense_date)}</Text>
               <Text style={styles.itemTitle}>
                 {CATEGORY_LABELS[item.category] ?? item.category}{item.note ? ` · ${item.note}` : ''}
@@ -90,7 +111,7 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
               <Text style={styles.itemSub}>
                 ${item.amount.toLocaleString('es-AR')}{item.odometer_km ? ` · ${item.odometer_km.toLocaleString('es-AR')} km` : ''}
               </Text>
-            </View>
+            </Pressable>
           )}
           ListEmptyComponent={!loadingExpenses ? <Text style={styles.empty}>Sin gastos cargados todavía.</Text> : null}
         />
@@ -107,7 +128,7 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
             </Pressable>
           }
           renderItem={({ item }) => (
-            <View style={styles.card}>
+            <Pressable style={styles.card} onPress={() => navigation.navigate('EditDocument', { vehicleId, documentId: item.id })}>
               <View style={styles.docRow}>
                 <View style={[styles.dot, { backgroundColor: documentStatusColor(item.expiration_date) }]} />
                 <Text style={styles.itemTitle}>{DOCUMENT_LABELS[item.type] ?? item.type}</Text>
@@ -115,7 +136,7 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
               <Text style={styles.itemSub}>
                 {item.expiration_date ? `Vence ${formatDate(item.expiration_date)}` : 'Sin vencimiento'}
               </Text>
-            </View>
+            </Pressable>
           )}
           ListEmptyComponent={!loadingDocuments ? <Text style={styles.empty}>Sin documentos cargados todavía.</Text> : null}
         />
@@ -132,7 +153,7 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
             </Pressable>
           }
           renderItem={({ item }) => (
-            <View style={styles.card}>
+            <Pressable style={styles.card} onPress={() => navigation.navigate('EditReminder', { vehicleId, reminderId: item.id })}>
               <Text style={styles.itemTitle}>{item.title}</Text>
               <Text style={styles.itemSub}>
                 {item.due_date ? formatDate(item.due_date) : ''}
@@ -145,7 +166,7 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
                 </Pressable>
               )}
               {item.status === 'done' && <Text style={styles.doneLabel}>Hecho</Text>}
-            </View>
+            </Pressable>
           )}
           ListEmptyComponent={!loadingReminders ? <Text style={styles.empty}>Sin recordatorios todavía.</Text> : null}
         />
@@ -159,6 +180,8 @@ const styles = StyleSheet.create({
   errorBox: { backgroundColor: '#F4D9D3', borderRadius: 8, padding: 10, margin: 16, marginBottom: 0 },
   errorText: { color: '#B44B3E', fontSize: 12, fontWeight: '600' },
   header: { padding: 16, paddingBottom: 8 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  editLink: { fontSize: 12, color: '#D98E04', fontWeight: '700', textTransform: 'uppercase' },
   brand: { fontSize: 18, fontWeight: '700', color: '#23262B' },
   plate: { fontSize: 12, color: '#5B6B73', marginTop: 4 },
   tabs: { flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 8 },
