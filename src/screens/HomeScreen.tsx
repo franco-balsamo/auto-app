@@ -2,6 +2,7 @@ import { View, Text, FlatList, Pressable, Alert, StyleSheet } from 'react-native
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { useVehicles } from '@/hooks/useVehicles';
+import { confirmDelete } from '@/lib/alerts';
 import type { Vehicle } from '@/types/database';
 
 export default function HomeScreen({ navigation }: any) {
@@ -19,23 +20,11 @@ export default function HomeScreen({ navigation }: any) {
       {
         text: 'Eliminar',
         style: 'destructive',
-        onPress: () => {
-          Alert.alert(
-            'Borrar vehículo',
-            'Se borra el vehículo y todo lo asociado (gastos, documentos, recordatorios). No se puede deshacer.',
-            [
-              { text: 'Cancelar', style: 'cancel' },
-              {
-                text: 'Borrar',
-                style: 'destructive',
-                onPress: async () => {
-                  const { error } = await deleteVehicle(vehicle.id);
-                  if (error) Alert.alert('Error', error);
-                },
-              },
-            ]
-          );
-        },
+        onPress: () =>
+          confirmDelete('vehículo (y todo lo asociado: gastos, documentos, recordatorios)', async () => {
+            const { error } = await deleteVehicle(vehicle.id);
+            if (error) Alert.alert('Error', error);
+          }),
       },
       { text: 'Cancelar', style: 'cancel' },
     ]);

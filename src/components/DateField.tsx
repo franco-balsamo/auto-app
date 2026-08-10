@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, Text, View, Modal, StyleSheet } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { parseDate, formatDate } from '@/lib/date';
 
 type Props = {
   value: string;
@@ -14,14 +15,6 @@ const MONTHS = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ];
-
-function parseDate(value: string): Date {
-  return value ? new Date(`${value}T00:00:00`) : new Date();
-}
-
-function formatDate(value: string): string {
-  return parseDate(value).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
-}
 
 function toDateString(d: Date): string {
   const y = d.getFullYear();

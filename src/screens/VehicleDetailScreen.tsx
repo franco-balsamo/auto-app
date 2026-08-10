@@ -3,18 +3,12 @@ import { View, Text, FlatList, Pressable, Alert, StyleSheet } from 'react-native
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParamList } from '@/navigation/RootNavigator';
-import type { Expense, VehicleDocument, Reminder } from '@/types/database';
 import { useVehicle } from '@/hooks/useVehicle';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useReminders } from '@/hooks/useReminders';
-
-function confirmDelete(what: string, onConfirm: () => void) {
-  Alert.alert(`Borrar ${what}`, 'No se puede deshacer.', [
-    { text: 'Cancelar', style: 'cancel' },
-    { text: 'Borrar', style: 'destructive', onPress: onConfirm },
-  ]);
-}
+import { formatDate } from '@/lib/date';
+import { confirmDelete } from '@/lib/alerts';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'VehicleDetail'>;
 
@@ -35,10 +29,6 @@ function documentStatusColor(expirationDate: string | null) {
   if (daysLeft < 0) return '#B44B3E';
   if (daysLeft <= 30) return '#D98E04';
   return '#3F6B4F';
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 export default function VehicleDetailScreen({ route, navigation }: Props) {
@@ -78,44 +68,14 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
     }, [refetchVehicle, refetchExpenses, refetchDocuments, refetchReminders])
   );
 
-  function handleExpenseMenu(item: Expense) {
-    Alert.alert(CATEGORY_LABELS[item.category] ?? item.category, undefined, [
-      { text: 'Editar', onPress: () => navigation.navigate('EditExpense', { vehicleId, expenseId: item.id }) },
+  function handleMenu(label: string, what: string, onEdit: () => void, onDelete: () => Promise<{ error: string | null }>) {
+    Alert.alert(label, undefined, [
+      { text: 'Editar', onPress: onEdit },
       {
         text: 'Eliminar',
         style: 'destructive',
-        onPress: () => confirmDelete('gasto', async () => {
-          const { error } = await deleteExpense(item.id);
-          if (error) Alert.alert('Error', error);
-        }),
-      },
-      { text: 'Cancelar', style: 'cancel' },
-    ]);
-  }
-
-  function handleDocumentMenu(item: VehicleDocument) {
-    Alert.alert(DOCUMENT_LABELS[item.type] ?? item.type, undefined, [
-      { text: 'Editar', onPress: () => navigation.navigate('EditDocument', { vehicleId, documentId: item.id }) },
-      {
-        text: 'Eliminar',
-        style: 'destructive',
-        onPress: () => confirmDelete('documento', async () => {
-          const { error } = await deleteDocument(item.id);
-          if (error) Alert.alert('Error', error);
-        }),
-      },
-      { text: 'Cancelar', style: 'cancel' },
-    ]);
-  }
-
-  function handleReminderMenu(item: Reminder) {
-    Alert.alert(item.title, undefined, [
-      { text: 'Editar', onPress: () => navigation.navigate('EditReminder', { vehicleId, reminderId: item.id }) },
-      {
-        text: 'Eliminar',
-        style: 'destructive',
-        onPress: () => confirmDelete('recordatorio', async () => {
-          const { error } = await deleteReminder(item.id);
+        onPress: () => confirmDelete(what, async () => {
+          const { error } = await onDelete();
           if (error) Alert.alert('Error', error);
         }),
       },
@@ -180,7 +140,17 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
                     ${item.amount.toLocaleString('es-AR')}{item.odometer_km ? ` · ${item.odometer_km.toLocaleString('es-AR')} km` : ''}
                   </Text>
                 </View>
-                <Pressable hitSlop={12} onPress={() => handleExpenseMenu(item)}>
+                <Pressable
+                  hitSlop={12}
+                  onPress={() =>
+                    handleMenu(
+                      CATEGORY_LABELS[item.category] ?? item.category,
+                      'gasto',
+                      () => navigation.navigate('EditExpense', { vehicleId, expenseId: item.id }),
+                      () => deleteExpense(item.id)
+                    )
+                  }
+                >
                   <Text style={styles.menuDots}>•••</Text>
                 </Pressable>
               </View>
@@ -212,7 +182,17 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
                     {item.expiration_date ? `Vence ${formatDate(item.expiration_date)}` : 'Sin vencimiento'}
                   </Text>
                 </View>
-                <Pressable hitSlop={12} onPress={() => handleDocumentMenu(item)}>
+                <Pressable
+                  hitSlop={12}
+                  onPress={() =>
+                    handleMenu(
+                      DOCUMENT_LABELS[item.type] ?? item.type,
+                      'documento',
+                      () => navigation.navigate('EditDocument', { vehicleId, documentId: item.id }),
+                      () => deleteDocument(item.id)
+                    )
+                  }
+                >
                   <Text style={styles.menuDots}>•••</Text>
                 </Pressable>
               </View>
@@ -249,7 +229,17 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
                   )}
                   {item.status === 'done' && <Text style={styles.doneLabel}>Hecho</Text>}
                 </View>
-                <Pressable hitSlop={12} onPress={() => handleReminderMenu(item)}>
+                <Pressable
+                  hitSlop={12}
+                  onPress={() =>
+                    handleMenu(
+                      item.title,
+                      'recordatorio',
+                      () => navigation.navigate('EditReminder', { vehicleId, reminderId: item.id }),
+                      () => deleteReminder(item.id)
+                    )
+                  }
+                >
                   <Text style={styles.menuDots}>•••</Text>
                 </Pressable>
               </View>
