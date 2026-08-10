@@ -29,3 +29,8 @@ motivo del "sello de taller" para estados).
   policy en `db/rls_policies.sql`
 - Seguir la convención de nombres en inglés para el código (variables,
   funciones) aunque los textos de la UI estén en español
+
+## Git
+- Trabajar siempre desde `development`. Nunca commitear ni pushear
+  directamente a `main`.
+- Commits sin línea `Co-Authored-By: Claude`.
