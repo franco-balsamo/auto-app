@@ -13,6 +13,11 @@ lubricentros, mecánicos, gomerías, lavaderos y casas de escape.
 Ver `docs/plan-app-mantenimiento-auto.md` para visión, funcionalidades por
 fase, monetización y roadmap completo antes de proponer features nuevas.
 
+## Estado y próximos pasos
+Ver `docs/roadmap.md` antes de arrancar cualquier tarea nueva: qué etapa
+está en curso, qué está hecho y qué falta, en orden de bloqueo real.
+Actualizarlo cuando se cierre algún ítem grande de esa lista.
+
 ## Modelo de datos
 Ver `db/schema.sql` (tablas) y `db/rls_policies.sql` (seguridad por usuario).
 Cualquier tabla nueva necesita su policy de RLS correspondiente — no lo
