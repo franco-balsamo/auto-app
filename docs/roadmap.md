@@ -25,14 +25,18 @@ Ya construido: alta de vehículo, gastos, recordatorios, documentación
 (`useNearbyWorkshops` + `nearby_workshops`), auth por magic link, CRUD
 completo con editar/eliminar desde listados, calendario propio para
 fechas, CI (`typecheck` → `lint` → `test`) en PR/push a
-`main`/`development`.
+`main`/`development`. Backend en Supabase (`auto-app-staging`,
+sa-east-1) corriendo con RLS optimizada (`(select auth.uid())` en vez de
+`auth.uid()` por fila, ver advisory de performance de Supabase).
 
 Pendiente, en orden de bloqueo real:
 
-1. **Correr los scripts SQL en Supabase** (si no se hizo ya en el
-   proyecto real): `schema.sql` → `functions.sql` → `rls_policies.sql` →
-   `storage.sql` → `seed_workshops.sql` (orden importa, hay
-   dependencias).
+1. ~~**Correr los scripts SQL en Supabase**~~ — hecho: proyecto
+   `auto-app-staging` (sa-east-1) tiene `schema.sql`, `functions.sql`,
+   `rls_policies.sql` y `storage.sql` corridos, con datos reales (2
+   vehículos, 3 gastos, 13 talleres). Advisory pendiente y no bloqueante:
+   `spatial_ref_sys` (tabla interna de PostGIS) sin RLS — bajo riesgo, no
+   es dato de usuario.
 2. **Reemplazar `seed_workshops.sql`** (10 talleres de prueba en
    Palermo/Almagro) por un script real contra Google Places API para la
    zona de lanzamiento — bloqueante para salir del "huevo-gallina" del
