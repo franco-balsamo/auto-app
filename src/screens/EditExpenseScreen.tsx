@@ -1,6 +1,7 @@
-import { View, Text, TextInput, Pressable, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable, Alert, ScrollView, StyleSheet } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useExpenses } from '@/hooks/useExpenses';
+import DateField from '@/components/DateField';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParamList } from '@/navigation/RootNavigator';
 import type { ExpenseCategory } from '@/types/database';
@@ -18,6 +19,7 @@ export default function EditExpenseScreen({ route, navigation }: Props) {
   const [amount, setAmount] = useState('');
   const [odometerKm, setOdometerKm] = useState('');
   const [note, setNote] = useState('');
+  const [expenseDate, setExpenseDate] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -28,6 +30,7 @@ export default function EditExpenseScreen({ route, navigation }: Props) {
     setAmount(String(expense.amount));
     setOdometerKm(expense.odometer_km ? String(expense.odometer_km) : '');
     setNote(expense.note ?? '');
+    setExpenseDate(expense.expense_date);
   }, [expense]);
 
   async function handleSave() {
@@ -37,6 +40,7 @@ export default function EditExpenseScreen({ route, navigation }: Props) {
       amount: Number(amount),
       odometer_km: odometerKm ? Number(odometerKm) : null,
       note: note.trim() || null,
+      expense_date: expenseDate,
     });
     setSaving(false);
     if (error) {
@@ -67,7 +71,7 @@ export default function EditExpenseScreen({ route, navigation }: Props) {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {error && (
         <View style={styles.errorBox}>
           <Text style={styles.errorText}>{error}</Text>
@@ -92,6 +96,9 @@ export default function EditExpenseScreen({ route, navigation }: Props) {
       <Text style={styles.label}>Nota (opcional)</Text>
       <TextInput style={styles.input} value={note} onChangeText={setNote} placeholder="Cambio de aceite" />
 
+      <Text style={styles.label}>Fecha</Text>
+      <DateField value={expenseDate} onChange={setExpenseDate} required />
+
       <Pressable style={[styles.saveBtn, saving && styles.saveBtnDisabled]} onPress={handleSave} disabled={saving}>
         <Text style={styles.saveBtnText}>{saving ? 'Guardando...' : 'Guardar cambios'}</Text>
       </Pressable>
@@ -99,7 +106,7 @@ export default function EditExpenseScreen({ route, navigation }: Props) {
       <Pressable style={[styles.deleteBtn, deleting && styles.saveBtnDisabled]} onPress={handleDelete} disabled={deleting}>
         <Text style={styles.deleteBtnText}>{deleting ? 'Borrando...' : 'Borrar gasto'}</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 

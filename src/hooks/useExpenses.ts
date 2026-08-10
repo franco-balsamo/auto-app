@@ -17,7 +17,13 @@ export function useExpenses(vehicleId: string) {
   const updateExpense = useCallback(
     async (
       expenseId: string,
-      input: { category: ExpenseCategory; amount: number; odometer_km: number | null; note: string | null }
+      input: {
+        category: ExpenseCategory;
+        amount: number;
+        odometer_km: number | null;
+        note: string | null;
+        expense_date: string;
+      }
     ) => {
       const { error } = await supabase.from('expenses').update(input).eq('id', expenseId);
       if (!error) await refetch();

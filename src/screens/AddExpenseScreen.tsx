@@ -1,6 +1,7 @@
-import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import DateField from '@/components/DateField';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParamList } from '@/navigation/RootNavigator';
 import type { ExpenseCategory } from '@/types/database';
@@ -9,11 +10,16 @@ type Props = NativeStackScreenProps<HomeStackParamList, 'AddExpense'>;
 
 const CATEGORIES: ExpenseCategory[] = ['service', 'nafta', 'seguro', 'patente', 'lavado', 'gomas', 'otro'];
 
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default function AddExpenseScreen({ route, navigation }: Props) {
   const { vehicleId } = route.params;
   const [category, setCategory] = useState<ExpenseCategory>('service');
   const [amount, setAmount] = useState('');
   const [odometerKm, setOdometerKm] = useState('');
+  const [expenseDate, setExpenseDate] = useState(today());
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -24,6 +30,7 @@ export default function AddExpenseScreen({ route, navigation }: Props) {
       category,
       amount: Number(amount),
       odometer_km: odometerKm ? Number(odometerKm) : null,
+      expense_date: expenseDate,
     });
     setSaving(false);
     if (error) {
@@ -34,7 +41,7 @@ export default function AddExpenseScreen({ route, navigation }: Props) {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {error && (
         <View style={styles.errorBox}>
           <Text style={styles.errorText}>{error}</Text>
@@ -56,12 +63,15 @@ export default function AddExpenseScreen({ route, navigation }: Props) {
       <Text style={styles.label}>Kilometraje (opcional)</Text>
       <TextInput style={styles.input} keyboardType="numeric" value={odometerKm} onChangeText={setOdometerKm} placeholder="84000" />
 
+      <Text style={styles.label}>Fecha</Text>
+      <DateField value={expenseDate} onChange={setExpenseDate} required />
+
       {/* TODO: foto de factura con expo-image-picker + OCR (fase 2) */}
 
       <Pressable style={[styles.saveBtn, saving && styles.saveBtnDisabled]} onPress={handleSave} disabled={saving}>
         <Text style={styles.saveBtnText}>{saving ? 'Guardando...' : 'Guardar gasto'}</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 

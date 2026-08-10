@@ -1,6 +1,7 @@
-import { View, Text, TextInput, Pressable, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Pressable, Alert, ScrollView, StyleSheet } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useReminders } from '@/hooks/useReminders';
+import DateField from '@/components/DateField';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParamList } from '@/navigation/RootNavigator';
 
@@ -69,7 +70,7 @@ export default function EditReminderScreen({ route, navigation }: Props) {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {error && (
         <View style={styles.errorBox}>
           <Text style={styles.errorText}>{error}</Text>
@@ -79,8 +80,8 @@ export default function EditReminderScreen({ route, navigation }: Props) {
       <Text style={styles.label}>Descripción</Text>
       <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Cambio de aceite" />
 
-      <Text style={styles.label}>Fecha objetivo (AAAA-MM-DD, opcional)</Text>
-      <TextInput style={styles.input} value={dueDate} onChangeText={setDueDate} placeholder="2026-12-01" />
+      <Text style={styles.label}>Fecha objetivo (opcional)</Text>
+      <DateField value={dueDate} onChange={setDueDate} />
 
       <Text style={styles.label}>Kilometraje objetivo (opcional)</Text>
       <TextInput style={styles.input} keyboardType="numeric" value={dueKm} onChangeText={setDueKm} placeholder="95000" />
@@ -92,7 +93,7 @@ export default function EditReminderScreen({ route, navigation }: Props) {
       <Pressable style={[styles.deleteBtn, deleting && styles.saveBtnDisabled]} onPress={handleDelete} disabled={deleting}>
         <Text style={styles.deleteBtnText}>{deleting ? 'Borrando...' : 'Borrar recordatorio'}</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 

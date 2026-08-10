@@ -1,6 +1,7 @@
-import { View, Text, TextInput, Pressable, Alert, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Alert, ScrollView, StyleSheet } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useDocuments } from '@/hooks/useDocuments';
+import DateField from '@/components/DateField';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParamList } from '@/navigation/RootNavigator';
 import type { DocumentType } from '@/types/database';
@@ -64,7 +65,7 @@ export default function EditDocumentScreen({ route, navigation }: Props) {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {error && (
         <View style={styles.errorBox}>
           <Text style={styles.errorText}>{error}</Text>
@@ -80,8 +81,8 @@ export default function EditDocumentScreen({ route, navigation }: Props) {
         ))}
       </View>
 
-      <Text style={styles.label}>Vencimiento (AAAA-MM-DD, opcional)</Text>
-      <TextInput style={styles.input} value={expirationDate} onChangeText={setExpirationDate} placeholder="2026-12-01" />
+      <Text style={styles.label}>Vencimiento (opcional)</Text>
+      <DateField value={expirationDate} onChange={setExpirationDate} />
 
       <Pressable style={[styles.saveBtn, saving && styles.saveBtnDisabled]} onPress={handleSave} disabled={saving}>
         <Text style={styles.saveBtnText}>{saving ? 'Guardando...' : 'Guardar cambios'}</Text>
@@ -90,7 +91,7 @@ export default function EditDocumentScreen({ route, navigation }: Props) {
       <Pressable style={[styles.deleteBtn, deleting && styles.saveBtnDisabled]} onPress={handleDelete} disabled={deleting}>
         <Text style={styles.deleteBtnText}>{deleting ? 'Borrando...' : 'Borrar documento'}</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
