@@ -1,12 +1,20 @@
 import { useState, useCallback } from 'react';
-import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Pressable, Alert, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParamList } from '@/navigation/RootNavigator';
+import type { Expense, VehicleDocument, Reminder } from '@/types/database';
 import { useVehicle } from '@/hooks/useVehicle';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useReminders } from '@/hooks/useReminders';
+
+function confirmDelete(what: string, onConfirm: () => void) {
+  Alert.alert(`Borrar ${what}`, 'No se puede deshacer.', [
+    { text: 'Cancelar', style: 'cancel' },
+    { text: 'Borrar', style: 'destructive', onPress: onConfirm },
+  ]);
+}
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'VehicleDetail'>;
 
@@ -38,14 +46,27 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
   const [tab, setTab] = useState<Tab>('historial');
 
   const { vehicle, error: vehicleError, refetch: refetchVehicle } = useVehicle(vehicleId);
-  const { expenses, loading: loadingExpenses, error: expensesError, refetch: refetchExpenses } = useExpenses(vehicleId);
-  const { documents, loading: loadingDocuments, error: documentsError, refetch: refetchDocuments } = useDocuments(vehicleId);
+  const {
+    expenses,
+    loading: loadingExpenses,
+    error: expensesError,
+    refetch: refetchExpenses,
+    deleteExpense,
+  } = useExpenses(vehicleId);
+  const {
+    documents,
+    loading: loadingDocuments,
+    error: documentsError,
+    refetch: refetchDocuments,
+    deleteDocument,
+  } = useDocuments(vehicleId);
   const {
     reminders,
     loading: loadingReminders,
     error: remindersError,
     refetch: refetchReminders,
     markDone,
+    deleteReminder,
   } = useReminders(vehicleId);
 
   useFocusEffect(
@@ -56,6 +77,51 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
       refetchReminders();
     }, [refetchVehicle, refetchExpenses, refetchDocuments, refetchReminders])
   );
+
+  function handleExpenseMenu(item: Expense) {
+    Alert.alert(CATEGORY_LABELS[item.category] ?? item.category, undefined, [
+      { text: 'Editar', onPress: () => navigation.navigate('EditExpense', { vehicleId, expenseId: item.id }) },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: () => confirmDelete('gasto', async () => {
+          const { error } = await deleteExpense(item.id);
+          if (error) Alert.alert('Error', error);
+        }),
+      },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
+  }
+
+  function handleDocumentMenu(item: VehicleDocument) {
+    Alert.alert(DOCUMENT_LABELS[item.type] ?? item.type, undefined, [
+      { text: 'Editar', onPress: () => navigation.navigate('EditDocument', { vehicleId, documentId: item.id }) },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: () => confirmDelete('documento', async () => {
+          const { error } = await deleteDocument(item.id);
+          if (error) Alert.alert('Error', error);
+        }),
+      },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
+  }
+
+  function handleReminderMenu(item: Reminder) {
+    Alert.alert(item.title, undefined, [
+      { text: 'Editar', onPress: () => navigation.navigate('EditReminder', { vehicleId, reminderId: item.id }) },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: () => confirmDelete('recordatorio', async () => {
+          const { error } = await deleteReminder(item.id);
+          if (error) Alert.alert('Error', error);
+        }),
+      },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
+  }
 
   const tabError =
     vehicleError ??
@@ -104,13 +170,20 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
           }
           renderItem={({ item }) => (
             <Pressable style={styles.card} onPress={() => navigation.navigate('EditExpense', { vehicleId, expenseId: item.id })}>
-              <Text style={styles.date}>{formatDate(item.expense_date)}</Text>
-              <Text style={styles.itemTitle}>
-                {CATEGORY_LABELS[item.category] ?? item.category}{item.note ? ` · ${item.note}` : ''}
-              </Text>
-              <Text style={styles.itemSub}>
-                ${item.amount.toLocaleString('es-AR')}{item.odometer_km ? ` · ${item.odometer_km.toLocaleString('es-AR')} km` : ''}
-              </Text>
+              <View style={styles.cardRow}>
+                <View style={styles.cardInfo}>
+                  <Text style={styles.date}>{formatDate(item.expense_date)}</Text>
+                  <Text style={styles.itemTitle}>
+                    {CATEGORY_LABELS[item.category] ?? item.category}{item.note ? ` · ${item.note}` : ''}
+                  </Text>
+                  <Text style={styles.itemSub}>
+                    ${item.amount.toLocaleString('es-AR')}{item.odometer_km ? ` · ${item.odometer_km.toLocaleString('es-AR')} km` : ''}
+                  </Text>
+                </View>
+                <Pressable hitSlop={12} onPress={() => handleExpenseMenu(item)}>
+                  <Text style={styles.menuDots}>•••</Text>
+                </Pressable>
+              </View>
             </Pressable>
           )}
           ListEmptyComponent={!loadingExpenses ? <Text style={styles.empty}>Sin gastos cargados todavía.</Text> : null}
@@ -129,13 +202,20 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
           }
           renderItem={({ item }) => (
             <Pressable style={styles.card} onPress={() => navigation.navigate('EditDocument', { vehicleId, documentId: item.id })}>
-              <View style={styles.docRow}>
-                <View style={[styles.dot, { backgroundColor: documentStatusColor(item.expiration_date) }]} />
-                <Text style={styles.itemTitle}>{DOCUMENT_LABELS[item.type] ?? item.type}</Text>
+              <View style={styles.cardRow}>
+                <View style={styles.cardInfo}>
+                  <View style={styles.docRow}>
+                    <View style={[styles.dot, { backgroundColor: documentStatusColor(item.expiration_date) }]} />
+                    <Text style={styles.itemTitle}>{DOCUMENT_LABELS[item.type] ?? item.type}</Text>
+                  </View>
+                  <Text style={styles.itemSub}>
+                    {item.expiration_date ? `Vence ${formatDate(item.expiration_date)}` : 'Sin vencimiento'}
+                  </Text>
+                </View>
+                <Pressable hitSlop={12} onPress={() => handleDocumentMenu(item)}>
+                  <Text style={styles.menuDots}>•••</Text>
+                </Pressable>
               </View>
-              <Text style={styles.itemSub}>
-                {item.expiration_date ? `Vence ${formatDate(item.expiration_date)}` : 'Sin vencimiento'}
-              </Text>
             </Pressable>
           )}
           ListEmptyComponent={!loadingDocuments ? <Text style={styles.empty}>Sin documentos cargados todavía.</Text> : null}
@@ -154,18 +234,25 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
           }
           renderItem={({ item }) => (
             <Pressable style={styles.card} onPress={() => navigation.navigate('EditReminder', { vehicleId, reminderId: item.id })}>
-              <Text style={styles.itemTitle}>{item.title}</Text>
-              <Text style={styles.itemSub}>
-                {item.due_date ? formatDate(item.due_date) : ''}
-                {item.due_date && item.due_km ? ' · ' : ''}
-                {item.due_km ? `${item.due_km.toLocaleString('es-AR')} km` : ''}
-              </Text>
-              {item.status === 'pending' && (
-                <Pressable style={styles.doneBtn} onPress={() => markDone(item.id)}>
-                  <Text style={styles.doneBtnText}>Marcar hecho</Text>
+              <View style={styles.cardRow}>
+                <View style={styles.cardInfo}>
+                  <Text style={styles.itemTitle}>{item.title}</Text>
+                  <Text style={styles.itemSub}>
+                    {item.due_date ? formatDate(item.due_date) : ''}
+                    {item.due_date && item.due_km ? ' · ' : ''}
+                    {item.due_km ? `${item.due_km.toLocaleString('es-AR')} km` : ''}
+                  </Text>
+                  {item.status === 'pending' && (
+                    <Pressable style={styles.doneBtn} onPress={() => markDone(item.id)}>
+                      <Text style={styles.doneBtnText}>Marcar hecho</Text>
+                    </Pressable>
+                  )}
+                  {item.status === 'done' && <Text style={styles.doneLabel}>Hecho</Text>}
+                </View>
+                <Pressable hitSlop={12} onPress={() => handleReminderMenu(item)}>
+                  <Text style={styles.menuDots}>•••</Text>
                 </Pressable>
-              )}
-              {item.status === 'done' && <Text style={styles.doneLabel}>Hecho</Text>}
+              </View>
             </Pressable>
           )}
           ListEmptyComponent={!loadingReminders ? <Text style={styles.empty}>Sin recordatorios todavía.</Text> : null}
@@ -191,6 +278,9 @@ const styles = StyleSheet.create({
   tabTextActive: { color: '#FBF9F4' },
   list: { paddingHorizontal: 16, paddingBottom: 24 },
   card: { backgroundColor: '#FBF9F4', borderRadius: 10, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: '#DCD5C4' },
+  cardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  cardInfo: { flex: 1 },
+  menuDots: { fontSize: 18, color: '#5B6B73', fontWeight: '700', paddingHorizontal: 8 },
   date: { fontSize: 11, color: '#5B6B73', marginBottom: 2 },
   itemTitle: { fontSize: 14, fontWeight: '700', color: '#23262B' },
   itemSub: { fontSize: 12, color: '#5B6B73', marginTop: 4 },

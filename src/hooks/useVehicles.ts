@@ -27,5 +27,14 @@ export function useVehicles() {
     [refetch]
   );
 
-  return { vehicles: vehicles ?? [], loading, error, refetch, createVehicle };
+  const deleteVehicle = useCallback(
+    async (vehicleId: string) => {
+      const { error } = await supabase.from('vehicles').delete().eq('id', vehicleId);
+      if (!error) await refetch();
+      return { error: error?.message ?? null };
+    },
+    [refetch]
+  );
+
+  return { vehicles: vehicles ?? [], loading, error, refetch, createVehicle, deleteVehicle };
 }
