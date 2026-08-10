@@ -41,15 +41,20 @@ Pendiente, en orden de bloqueo real:
    placeholder) — bloqueante para cualquier build de store.
 4. **Sentry DSN + Google Maps API key (Android)** — antes del primer
    build de store.
-5. **OCR de factura** en `AddExpenseScreen.tsx` — decisión pendiente:
-   ML Kit on-device (requiere dev build, no anda en Expo Go) vs Google
-   Vision API (anda en Expo Go, requiere API key). Palanca #1 contra
-   abandono según sección 6 del plan de producto — no es cosmético.
+5. ~~**OCR de factura**~~ — armado con Google Vision API (anda en Expo
+   Go, a diferencia de ML Kit que pide dev build): `src/lib/ocr.ts`
+   (parser + llamada a Vision), `useExpenses.createExpense` sube la foto
+   a `vehicle-files` y guarda `receipt_photo_url`, `AddExpenseScreen`
+   saca la foto y autocompleta monto/fecha. Sin
+   `EXPO_PUBLIC_GOOGLE_VISION_API_KEY` en `.env`, sacar foto sigue
+   andando pero no autocompleta (mismo patrón que Sentry sin DSN) —
+   **falta que definas y cargues esa key para activar el autocompletado**.
 6. **`assets/` con icon/splash reales** — hoy no existe la carpeta, EAS
    usa el ícono default de Expo. No bloquea desarrollo pero sí publicar
    en stores.
-7. **Subir cobertura de tests** más allá de vehículos/auth (hoy sin
-   cobertura: gastos, documentos, recordatorios, directorio, DateField).
+7. ~~**Subir cobertura de tests** más allá de vehículos/auth~~ — hecho:
+   `useExpenses`, `useDocuments`, `useReminders`, `useVehicle`,
+   `useNearbyWorkshops` y `DateField` ya tienen tests (9 suites / 35 tests).
 8. **Ticket a support.github.com** por el bloqueo de GitHub Actions a
    nivel de cuenta (permisos ok, pero `/actions/runs` no corre nada) —
    sin esto, CI no protege ningún merge real todavía.
