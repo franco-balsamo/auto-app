@@ -41,8 +41,9 @@ Pendiente, en orden de bloqueo real:
    Palermo/Almagro) por un script real contra Google Places API para la
    zona de lanzamiento — bloqueante para salir del "huevo-gallina" del
    directorio (sección 6 del plan de producto).
-3. **Bundle identifier real + `eas init`** (hoy `com.tuempresa.autoapp`
-   placeholder) — bloqueante para cualquier build de store.
+3. ~~**Bundle identifier real + `eas init`**~~ — hecho:
+   `com.balsamote96.autoapp` (iOS y Android) y proyecto EAS creado
+   (`@fbalsamo/auto-app`, ver `app.json` → `extra.eas.projectId`).
 4. **Sentry DSN + Google Maps API key (Android)** — antes del primer
    build de store.
 5. ~~**OCR de factura**~~ — armado con Google Vision API (anda en Expo
@@ -53,9 +54,12 @@ Pendiente, en orden de bloqueo real:
    `EXPO_PUBLIC_GOOGLE_VISION_API_KEY` en `.env`, sacar foto sigue
    andando pero no autocompleta (mismo patrón que Sentry sin DSN) —
    **falta que definas y cargues esa key para activar el autocompletado**.
-6. **`assets/` con icon/splash reales** — hoy no existe la carpeta, EAS
-   usa el ícono default de Expo. No bloquea desarrollo pero sí publicar
-   en stores.
+6. ~~**`assets/` con icon/splash reales**~~ — hecho en versión
+   placeholder: `icon.png`, `adaptive-icon.png`, `splash.png` y
+   `favicon.png` generados con el motivo de "sello de taller" (paleta
+   grafito/papel/ámbar de `docs/wireframes.html`), referenciados en
+   `app.json`. Son diseño genérico, no de marca — reemplazar antes de
+   publicar en stores si se define identidad visual definitiva.
 7. ~~**Subir cobertura de tests** más allá de vehículos/auth~~ — hecho:
    `useExpenses`, `useDocuments`, `useReminders`, `useVehicle`,
    `useNearbyWorkshops` y `DateField` ya tienen tests (9 suites / 35 tests).
