@@ -44,8 +44,13 @@ Pendiente, en orden de bloqueo real:
 3. ~~**Bundle identifier real + `eas init`**~~ — hecho:
    `com.balsamote96.autoapp` (iOS y Android) y proyecto EAS creado
    (`@fbalsamo/auto-app`, ver `app.json` → `extra.eas.projectId`).
-4. **Sentry DSN + Google Maps API key (Android)** — antes del primer
-   build de store.
+4. ~~**Sentry DSN + Google Maps API key (Android)**~~ — hecho:
+   `EXPO_PUBLIC_SENTRY_DSN` cargado y `trackEvent` confirmado llegando
+   a Sentry (proyecto `auto-app`, org `cg-consulting`); Google Maps API
+   key restringida solo a "Maps SDK for Android" (sin restricción de
+   package/SHA-1 todavía, no hay build Android generado aún — restringir
+   bien cuando exista un `eas build` de Android real) en
+   `app.json` → `android.config.googleMaps.apiKey`.
 5. ~~**OCR de factura**~~ — armado con Google Vision API (anda en Expo
    Go, a diferencia de ML Kit que pide dev build): `src/lib/ocr.ts`
    (parser + llamada a Vision), `useExpenses.createExpense` sube la foto
