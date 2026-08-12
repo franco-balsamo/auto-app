@@ -2,17 +2,28 @@ import { View, Text, FlatList, Pressable, Alert, StyleSheet } from 'react-native
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { useVehicles } from '@/hooks/useVehicles';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { confirmDelete } from '@/lib/alerts';
 import type { Vehicle } from '@/types/database';
 
 export default function HomeScreen({ navigation }: any) {
   const { vehicles, loading, error, refetch, deleteVehicle } = useVehicles();
+  const { isPro } = useEntitlements();
+  const canAddVehicle = isPro || vehicles.length === 0;
 
   useFocusEffect(
     useCallback(() => {
       refetch();
     }, [refetch])
   );
+
+  function handleAddVehicle() {
+    if (!canAddVehicle) {
+      Alert.alert('Función paga', 'El plan free permite 1 vehículo. Función paga próximamente.');
+      return;
+    }
+    navigation.navigate('AddVehicle');
+  }
 
   function handleMenu(vehicle: Vehicle) {
     Alert.alert(`${vehicle.brand} ${vehicle.model}`, undefined, [
@@ -43,7 +54,7 @@ export default function HomeScreen({ navigation }: any) {
         data={vehicles}
         keyExtractor={(v) => v.id}
         ListHeaderComponent={
-          <Pressable style={styles.addBtn} onPress={() => navigation.navigate('AddVehicle')}>
+          <Pressable style={styles.addBtn} onPress={handleAddVehicle}>
             <Text style={styles.addBtnText}>+ Agregar vehículo</Text>
           </Pressable>
         }

@@ -13,9 +13,24 @@ create policy "Los usuarios ven sus propios vehículos"
   on vehicles for select
   using ((select auth.uid()) = user_id);
 
+-- Plan free: máximo 1 vehículo por cuenta. El conteo excluye la fila que
+-- se está por insertar (no es visible todavía para la subquery dentro
+-- del mismo INSERT), así que "< 1" permite exactamente el primero.
+-- Backstop server-side del límite que ya se avisa en HomeScreen — sin
+-- esto, cualquiera podría pegarle directo a la API REST de Supabase y
+-- saltearse el chequeo del cliente.
 create policy "Los usuarios crean sus propios vehículos"
   on vehicles for insert
-  with check ((select auth.uid()) = user_id);
+  with check (
+    (select auth.uid()) = user_id
+    and (
+      (select count(*) from vehicles v where v.user_id = (select auth.uid())) < 1
+      or exists (
+        select 1 from subscriptions s
+        where s.user_id = (select auth.uid()) and s.status = 'active'
+      )
+    )
+  );
 
 create policy "Los usuarios editan sus propios vehículos"
   on vehicles for update

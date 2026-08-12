@@ -137,12 +137,19 @@ Pendiente, en orden de bloqueo real:
   paga próximamente") si `canExportPdf` es `false`. Con tests (5 casos:
   free sin usar, free ya usado, pro con freebie ya gastado, suscripción
   cancelada no cuenta como pro, insert de `markPdfExportUsed`).
-- Pendiente, en orden: (1) enforcement real del límite de 1 vehículo en
-  plan free (hoy `useVehicles`/RLS no lo restringen, cualquier usuario
-  puede cargar vehículos ilimitados); (2) backend que reciba el webhook
-  de Mercado Pago y escriba en `subscriptions` (Edge Function de
-  Supabase, service_role); (3) checkout/flujo de alta de suscripción en
-  la app.
+- ~~**Límite de 1 vehículo en plan free**~~ — hecho, con backstop
+  server-side real (no solo aviso en el cliente): policy RLS de `insert`
+  en `vehicles` (`db/rls_policies.sql`, aplicada a `auto-app-staging`
+  con `alter policy`) bloquea el 2º vehículo salvo suscripción activa —
+  pegarle directo a la API REST de Supabase salteando el cliente no
+  alcanza para saltear el límite, a diferencia del gate de PDF que hoy
+  es solo UI. `HomeScreen` corta antes de navegar a `AddVehicle` con el
+  mismo alert "Función paga próximamente" que el export de PDF. 3 tests
+  nuevos (`HomeScreen.test.tsx`). Usuarios ya existentes con 2+
+  vehículos quedan como estaban — la policy solo afecta inserts nuevos.
+- Pendiente, en orden: (1) backend que reciba el webhook de Mercado Pago
+  y escriba en `subscriptions` (Edge Function de Supabase,
+  service_role); (2) checkout/flujo de alta de suscripción en la app.
 
 ## Etapa 4 — Lado talleres (6-8 semanas estimadas)
 
