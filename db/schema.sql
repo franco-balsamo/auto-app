@@ -71,7 +71,8 @@ create table reminders (
   status text not null default 'pending' check (status in ('pending', 'done', 'dismissed')),
   source text not null default 'manual' check (source in ('manual', 'document', 'preset')),
   created_at timestamptz default now(),
-  updated_at timestamptz default now()
+  updated_at timestamptz default now(),
+  check (due_date is not null or due_km is not null)  -- ya validado en AddReminderScreen/EditReminderScreen; esto es el backstop server-side para llamadas directas a la API
 );
 
 -- ---------------------------------------------------------
@@ -123,7 +124,8 @@ create table reviews (
   comment text,
   photo_url text,
   created_at timestamptz default now(),
-  updated_at timestamptz default now()
+  updated_at timestamptz default now(),
+  unique (workshop_id, user_id)  -- 1 reseña por usuario por taller; antes solo lo evitaba la UI, pegarle directo a la API permitía spamear rating
 );
 
 -- ---------------------------------------------------------

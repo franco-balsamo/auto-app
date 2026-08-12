@@ -32,6 +32,53 @@ create trigger set_updated_at before update on quote_requests for each row execu
 drop trigger if exists set_updated_at on quote_responses;
 create trigger set_updated_at before update on quote_responses for each row execute function set_updated_at();
 
+-- ---------- normalize_vehicle_plate ----------
+-- La UI ya manda la patente en mayúsculas y sin espacios (AddVehicleScreen/
+-- EditVehicleScreen), pero eso no lo garantiza el `unique (user_id, plate)`
+-- de schema.sql contra un insert/update directo a la API ("AB123CD" vs
+-- "ab 123 cd" no colisionan sin normalizar). Backstop server-side.
+create or replace function normalize_vehicle_plate()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  new.plate := upper(regexp_replace(trim(new.plate), '\s+', '', 'g'));
+  return new;
+end;
+$$;
+
+drop trigger if exists normalize_vehicle_plate on vehicles;
+create trigger normalize_vehicle_plate
+  before insert or update on vehicles
+  for each row execute function normalize_vehicle_plate();
+
+-- ---------- protect_workshop_admin_columns ----------
+-- Las policies "Reclamar un taller sin dueño" / "Editar mi taller
+-- reclamado" (rls_policies.sql) solo validan `claimed_by_user_id` — no
+-- restringen qué otras columnas cambian en el mismo update. Sin este
+-- trigger, un usuario que reclama su propio taller puede pegarle directo
+-- a la API REST (`update workshops set is_promoted = true`) y
+-- autodestacar su ficha gratis, saltando el cobro de Etapa 4. Solo el
+-- backend (service_role, al procesar el pago) puede tocar is_promoted.
+create or replace function protect_workshop_admin_columns()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if auth.role() <> 'service_role' then
+    new.is_promoted := old.is_promoted;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists workshops_protect_admin_columns on workshops;
+create trigger workshops_protect_admin_columns
+  before update on workshops
+  for each row execute function protect_workshop_admin_columns();
+
 -- ---------- nearby_workshops ----------
 -- Reemplaza el filtrado por distancia hecho en el cliente
 -- (ver src/hooks/useNearbyWorkshops.ts). Usa el índice gist sobre
