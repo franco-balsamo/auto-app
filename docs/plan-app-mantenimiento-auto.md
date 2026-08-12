@@ -109,3 +109,5 @@ Una app para dueños de auto en Argentina que centraliza tres cosas que hoy est�
 - **Huevo-gallina del directorio:** se resuelve arrancando con Google Places API en vez de esperar que los talleres se sumen solos
 - **Retención:** una app de "cargar datos" tiene fricción — el OCR de facturas y el Modo Taller (que carga datos por el usuario) son las palancas más fuertes contra el abandono
 - **Confianza con documentación sensible:** cifrado, política de privacidad clara, nunca vender datos
+- **Marco legal de datos personales:** documentación sensible (cédula, licencia, seguro) requiere evaluar la Ley 25.326 (protección de datos personales, Argentina) más allá de "cifrado y política de privacidad" genérico, dado el tipo de dato almacenado
+- **Secuencia de inversión:** validar retención real (beta cerrada) antes de invertir en Etapa 4 (Modo Taller/cotizador) — apostar 6-8 semanas de desarrollo sin confirmar que el registro manual básico retiene usuarios es el riesgo más caro del roadmap actual

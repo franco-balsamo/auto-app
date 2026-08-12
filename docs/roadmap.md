@@ -206,3 +206,16 @@ zona a medida que la app se expanda a otras localidades. Lo único que
 queda en Etapa 1 es el ticket a support.github.com por CI (#8) y la beta
 cerrada (#9, cierre formal de la etapa) — ninguno de los dos bloquea tener
 una build interna compartible.
+
+**Prioridad de secuencia:** cerrar la beta cerrada (#9) y confirmar
+retención real (¿usuarios vuelven a cargar gasto semana 2? ¿usan el OCR?)
+antes de invertir en Etapa 4 (Modo Taller/cotizador, 6-8 semanas
+estimadas). Apps de registro manual de datos suelen tener retención floja
+si el lock-in (OCR, Modo Taller) no funciona en la práctica — validarlo
+es más barato que construir 6-8 semanas más sin esa confirmación.
+
+**Riesgo legal pendiente:** documentación sensible (cédula, licencia,
+seguro) en storage — evaluar si aplica el marco de la Ley 25.326
+(protección de datos personales, Argentina) más formalmente antes de
+escalar a beta pública, no solo cifrado + política de privacidad
+genérica.
