@@ -63,6 +63,12 @@
         "projectId": "82c65977-0b55-4439-bc75-8be897bff06d"
       }
     },
-    "owner": "fbalsamo"
+    "owner": "fbalsamo",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/82c65977-0b55-4439-bc75-8be897bff06d"
+    }
   }
 }
