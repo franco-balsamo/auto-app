@@ -158,6 +158,33 @@ create policy "Un usuario puede editar su propia reseña"
   on reviews for update
   using ((select auth.uid()) = user_id);
 
+-- ---------- SUBSCRIPTIONS (solo lectura desde el cliente) ----------
+alter table subscriptions enable row level security;
+
+create policy "Ver mi propia suscripción"
+  on subscriptions for select
+  using ((select auth.uid()) = user_id);
+
+-- Sin policy de insert/update/delete para authenticated/anon: el status
+-- de pago lo escribe únicamente el backend (service_role, bypassea RLS)
+-- al procesar el webhook de Mercado Pago. Si el cliente pudiera
+-- escribir su propio status, cualquier usuario logueado se destrabaría
+-- el plan pago solo.
+
+-- ---------- PDF EXPORT USAGE ----------
+alter table pdf_export_usage enable row level security;
+
+create policy "Ver mi propio uso del export gratis"
+  on pdf_export_usage for select
+  using ((select auth.uid()) = user_id);
+
+create policy "Marcar mi export gratis como usado"
+  on pdf_export_usage for insert
+  with check ((select auth.uid()) = user_id);
+
+-- Sin policy de update/delete: una vez insertada la fila, el cliente no
+-- puede borrarla ni tocarla para resetear el freebie.
+
 -- ---------- QUOTE REQUESTS / RESPONSES ----------
 alter table quote_requests enable row level security;
 

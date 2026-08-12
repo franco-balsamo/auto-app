@@ -151,6 +151,44 @@ create table quote_responses (
 );
 
 -- ---------------------------------------------------------
+-- SUSCRIPCIONES (fase 3 — monetización usuario)
+-- ---------------------------------------------------------
+-- Sin fila = plan free (1 vehículo, historial básico). Una fila con
+-- status = 'active' habilita el plan pago (multi-vehículo, backup,
+-- reporte de reventa). No hay columna "plan": solo existe un tier pago
+-- hoy, agregar la columna el día que haya un segundo.
+--
+-- Esta tabla NO tiene policy de insert/update/delete para
+-- authenticated/anon (ver rls_policies.sql) — a propósito: si el cliente
+-- pudiera escribir su propio status, cualquier usuario logueado podría
+-- insertarse 'active' y destrabar el plan pago gratis. Solo se escribe
+-- desde el backend (service_role) al procesar el webhook de Mercado
+-- Pago — ese backend todavía no existe, es el próximo paso de esta etapa.
+create table subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null unique references auth.users(id) on delete cascade,
+  status text not null default 'active' check (status in ('active', 'canceled', 'past_due')),
+  mp_preapproval_id text, -- id de la suscripción recurrente en Mercado Pago
+  current_period_end timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Export de historial a PDF: gratis la primera vez por cuenta, pago las
+-- siguientes (decisión de producto — el export en sí ya es gratis desde
+-- Etapa 2, esto es el límite de "una vez sin plan pago"). Fila presente
+-- = ya usó su export gratis; sin fila = todavía lo tiene disponible.
+-- A diferencia de "subscriptions", esta tabla SÍ tiene policy de insert
+-- para el cliente (ver rls_policies.sql) — no hay plata de por medio,
+-- solo una bandera de uso, así que no hace falta pasar por el backend.
+-- Sin policy de update/delete: el cliente no puede borrar su propia fila
+-- para resetear el freebie llamando directo a la API.
+create table pdf_export_usage (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  used_at timestamptz not null default now()
+);
+
+-- ---------------------------------------------------------
 -- ÍNDICES — columnas que las subqueries `exists` de las policies RLS
 -- evalúan en cada request, más las FKs que el advisor de Supabase marca
 -- sin índice.

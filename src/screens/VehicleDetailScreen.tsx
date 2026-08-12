@@ -7,6 +7,7 @@ import { useVehicle } from '@/hooks/useVehicle';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useReminders } from '@/hooks/useReminders';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { formatDate } from '@/lib/date';
 import { confirmDelete } from '@/lib/alerts';
 import { buildVehicleHistoryHtml, exportVehicleHistoryPdf } from '@/lib/pdf';
@@ -59,6 +60,7 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
     markDone,
     deleteReminder,
   } = useReminders(vehicleId);
+  const { isPro, canExportPdf, markPdfExportUsed } = useEntitlements();
 
   useFocusEffect(
     useCallback(() => {
@@ -71,6 +73,10 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
 
   async function handleExportPdf() {
     if (!vehicle) return;
+    if (!canExportPdf) {
+      Alert.alert('Función paga', 'Ya usaste tu exportación a PDF gratis. Función paga próximamente.');
+      return;
+    }
     try {
       const html = buildVehicleHistoryHtml({
         vehicle, expenses, documents, reminders,
@@ -78,6 +84,7 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
         documentLabels: DOCUMENT_LABELS,
       });
       await exportVehicleHistoryPdf(html);
+      if (!isPro) await markPdfExportUsed();
     } catch {
       Alert.alert('Error', 'No se pudo generar el PDF.');
     }

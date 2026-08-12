@@ -116,11 +116,33 @@ Pendiente, en orden de bloqueo real:
 
 ## Etapa 3 — Monetización usuario (3-4 semanas estimadas)
 
-- Suscripción freemium: gratis 1 vehículo/historial básico, pago
-  multi-vehículo + export PDF + backup + reporte de reventa.
-- Integrar Mercado Pago (pasarela sugerida para el mercado argentino).
-- Nada de esto tiene aún ni modelo de datos (falta tabla de
-  suscripciones/planes) ni código.
+- ~~**Modelo de datos de suscripción**~~ — hecho: tabla `subscriptions`
+  (`db/schema.sql`, aplicada a `auto-app-staging`) — sin fila = plan
+  free, fila con `status = 'active'` = plan pago. Sin columna `plan`
+  (YAGNI: hoy hay un solo tier pago). RLS: `select` de la propia fila
+  únicamente — **sin policy de insert/update/delete para el cliente a
+  propósito** (si el usuario pudiera escribir su propio `status`, se
+  destrabaría el plan pago gratis). Solo el backend (service_role) va a
+  poder escribir acá, al procesar el webhook de Mercado Pago.
+- ~~**Gate del export PDF**~~ — hecho, decisión de producto tomada:
+  gratis la primera vez por cuenta (no por vehículo), pago las
+  siguientes. Tabla `pdf_export_usage` (`db/schema.sql`, aplicada a
+  `auto-app-staging`) — fila presente = ya usó su export gratis, sin
+  fila = todavía lo tiene disponible. A diferencia de `subscriptions`,
+  esta sí tiene policy de `insert` para el cliente (no hay plata de por
+  medio, solo una bandera de uso) pero sin `update`/`delete` — no se
+  puede resetear el freebie llamando directo a la API. `useEntitlements`
+  (`isPro`, `canExportPdf`, `markPdfExportUsed`) conecta ambas tablas;
+  `VehicleDetailScreen.handleExportPdf` bloquea con un alert ("Función
+  paga próximamente") si `canExportPdf` es `false`. Con tests (5 casos:
+  free sin usar, free ya usado, pro con freebie ya gastado, suscripción
+  cancelada no cuenta como pro, insert de `markPdfExportUsed`).
+- Pendiente, en orden: (1) enforcement real del límite de 1 vehículo en
+  plan free (hoy `useVehicles`/RLS no lo restringen, cualquier usuario
+  puede cargar vehículos ilimitados); (2) backend que reciba el webhook
+  de Mercado Pago y escriba en `subscriptions` (Edge Function de
+  Supabase, service_role); (3) checkout/flujo de alta de suscripción en
+  la app.
 
 ## Etapa 4 — Lado talleres (6-8 semanas estimadas)
 

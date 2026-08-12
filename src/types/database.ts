@@ -13,6 +13,8 @@ export type WorkshopCategory =
 
 export type QuoteRequestStatus = 'open' | 'closed';
 
+export type SubscriptionStatus = 'active' | 'canceled' | 'past_due';
+
 export interface Vehicle {
   id: string;
   user_id: string;
@@ -86,6 +88,25 @@ export interface Review {
   photo_url: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// Sin fila = plan free. Ver nota en db/schema.sql — solo el backend
+// (service_role, al procesar el webhook de Mercado Pago) escribe acá.
+export interface Subscription {
+  id: string;
+  user_id: string;
+  status: SubscriptionStatus;
+  mp_preapproval_id: string | null;
+  current_period_end: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Fila presente = el usuario ya usó su export a PDF gratis. Sin fila =
+// todavía lo tiene disponible.
+export interface PdfExportUsage {
+  user_id: string;
+  used_at: string;
 }
 
 export interface QuoteRequest {
