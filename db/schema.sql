@@ -90,7 +90,7 @@ create table workshops (
   lng double precision not null,
   phone text,
   hours jsonb,                    -- horarios por día
-  source text not null default 'google_places', -- google_places | manual
+  source text not null default 'osm', -- osm | manual
   claimed_by_user_id uuid references auth.users(id) on delete set null, -- null = sin reclamar
   is_promoted boolean default false, -- ficha destacada (paga)
   created_at timestamptz default now(),
@@ -173,8 +173,8 @@ create index quote_responses_workshop_id_idx on quote_responses (workshop_id);
 -- 1. "reminders" se puede poblar automático: al cargar un expense de
 --    categoría 'service' con odometer_km, generar el próximo reminder
 --    sumando el intervalo (ej. +10.000km) via trigger o desde el backend.
--- 2. "workshops" arranca poblada con datos de Google Places API (source
---    = 'google_places'), y se van "reclamando" (claimed_by_user_id) a
---    medida que los dueños de talleres se registran.
+-- 2. "workshops" arranca poblada con datos de OpenStreetMap (source =
+--    'osm', ver scripts/fetch_workshops.mjs), y se van "reclamando"
+--    (claimed_by_user_id) a medida que los dueños de talleres se registran.
 -- 3. RLS (Row Level Security) en Supabase: vehicles/expenses/documents
 --    solo visibles para su user_id. workshops/reviews públicas de lectura.

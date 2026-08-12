@@ -9,6 +9,7 @@ import { useDocuments } from '@/hooks/useDocuments';
 import { useReminders } from '@/hooks/useReminders';
 import { formatDate } from '@/lib/date';
 import { confirmDelete } from '@/lib/alerts';
+import { buildVehicleHistoryHtml, exportVehicleHistoryPdf } from '@/lib/pdf';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'VehicleDetail'>;
 
@@ -68,6 +69,20 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
     }, [refetchVehicle, refetchExpenses, refetchDocuments, refetchReminders])
   );
 
+  async function handleExportPdf() {
+    if (!vehicle) return;
+    try {
+      const html = buildVehicleHistoryHtml({
+        vehicle, expenses, documents, reminders,
+        categoryLabels: CATEGORY_LABELS,
+        documentLabels: DOCUMENT_LABELS,
+      });
+      await exportVehicleHistoryPdf(html);
+    } catch {
+      Alert.alert('Error', 'No se pudo generar el PDF.');
+    }
+  }
+
   function handleMenu(label: string, what: string, onEdit: () => void, onDelete: () => Promise<{ error: string | null }>) {
     Alert.alert(label, undefined, [
       { text: 'Editar', onPress: onEdit },
@@ -103,7 +118,12 @@ export default function VehicleDetailScreen({ route, navigation }: Props) {
                 {vehicle.plate} · {vehicle.year ?? '—'} · {vehicle.current_km.toLocaleString('es-AR')} km
               </Text>
             </View>
-            <Text style={styles.editLink}>Editar</Text>
+            <View style={styles.headerActions}>
+              <Pressable hitSlop={8} onPress={handleExportPdf}>
+                <Text style={styles.exportLink}>Exportar PDF</Text>
+              </Pressable>
+              <Text style={styles.editLink}>Editar</Text>
+            </View>
           </View>
         </Pressable>
       )}
@@ -258,7 +278,9 @@ const styles = StyleSheet.create({
   errorText: { color: '#B44B3E', fontSize: 12, fontWeight: '600' },
   header: { padding: 16, paddingBottom: 8 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   editLink: { fontSize: 12, color: '#D98E04', fontWeight: '700', textTransform: 'uppercase' },
+  exportLink: { fontSize: 12, color: '#5B6B73', fontWeight: '700', textTransform: 'uppercase' },
   brand: { fontSize: 18, fontWeight: '700', color: '#23262B' },
   plate: { fontSize: 12, color: '#5B6B73', marginTop: 4 },
   tabs: { flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 8 },

@@ -70,7 +70,7 @@ export interface Workshop {
   lng: number;
   phone: string | null;
   hours: Record<string, string> | null;
-  source: 'google_places' | 'manual';
+  source: 'osm' | 'manual';
   claimed_by_user_id: string | null;
   is_promoted: boolean;
   created_at: string;

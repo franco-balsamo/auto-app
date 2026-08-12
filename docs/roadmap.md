@@ -105,8 +105,14 @@ Pendiente, en orden de bloqueo real:
   identidad/negocio) — el reclamo es directo, cualquier usuario logueado
   puede tocar "Reclamar" en una ficha sin dueño. Aceptable para dev/beta
   cerrada, revisar antes de abrir a público.
-- **Exportar historial de vehículo a PDF**: no iniciado, ninguna
-  dependencia instalada todavía.
+- ~~**Exportar historial de vehículo a PDF**~~ — hecho: `expo-print` +
+  `expo-sharing` instalados, `src/lib/pdf.ts` arma el HTML (gastos +
+  documentos + recordatorios) y dispara el share sheet nativo. Botón
+  "Exportar PDF" en el header de `VehicleDetailScreen`. Sin probar en un
+  device/simulador real todavía (entorno de desarrollo sin uno a mano) —
+  solo verificado por typecheck/lint/tests (`buildVehicleHistoryHtml` sí
+  tiene tests, la función que llama a `expo-print`/`expo-sharing` no,
+  requiere runtime nativo).
 
 ## Etapa 3 — Monetización usuario (3-4 semanas estimadas)
 
