@@ -162,13 +162,15 @@ create table quote_responses (
 -- authenticated/anon (ver rls_policies.sql) — a propósito: si el cliente
 -- pudiera escribir su propio status, cualquier usuario logueado podría
 -- insertarse 'active' y destrabar el plan pago gratis. Solo se escribe
--- desde el backend (service_role) al procesar el webhook de Mercado
--- Pago — ese backend todavía no existe, es el próximo paso de esta etapa.
+-- desde el backend (service_role) al procesar el webhook de RevenueCat
+-- — ese backend todavía no existe, es el próximo paso de esta etapa.
+-- (Pasarela: RevenueCat/IAP nativo, no Mercado Pago — ver docs/roadmap.md,
+-- Etapa 3, política de Apple/Google sobre suscripciones digitales in-app.)
 create table subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references auth.users(id) on delete cascade,
   status text not null default 'active' check (status in ('active', 'canceled', 'past_due')),
-  mp_preapproval_id text, -- id de la suscripción recurrente en Mercado Pago
+  revenuecat_entitlement_id text, -- id de la suscripción en RevenueCat
   current_period_end timestamptz,
   created_at timestamptz default now(),
   updated_at timestamptz default now()

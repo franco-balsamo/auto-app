@@ -91,12 +91,12 @@ export interface Review {
 }
 
 // Sin fila = plan free. Ver nota en db/schema.sql — solo el backend
-// (service_role, al procesar el webhook de Mercado Pago) escribe acá.
+// (service_role, al procesar el webhook de RevenueCat) escribe acá.
 export interface Subscription {
   id: string;
   user_id: string;
   status: SubscriptionStatus;
-  mp_preapproval_id: string | null;
+  revenuecat_entitlement_id: string | null;
   current_period_end: string | null;
   created_at: string;
   updated_at: string;

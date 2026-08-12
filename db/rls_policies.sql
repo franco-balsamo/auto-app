@@ -182,9 +182,9 @@ create policy "Ver mi propia suscripción"
 
 -- Sin policy de insert/update/delete para authenticated/anon: el status
 -- de pago lo escribe únicamente el backend (service_role, bypassea RLS)
--- al procesar el webhook de Mercado Pago. Si el cliente pudiera
--- escribir su propio status, cualquier usuario logueado se destrabaría
--- el plan pago solo.
+-- al procesar el webhook de RevenueCat. Si el cliente pudiera escribir
+-- su propio status, cualquier usuario logueado se destrabaría el plan
+-- pago solo.
 
 -- ---------- PDF EXPORT USAGE ----------
 alter table pdf_export_usage enable row level security;

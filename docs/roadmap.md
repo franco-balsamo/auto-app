@@ -116,6 +116,26 @@ Pendiente, en orden de bloqueo real:
 
 ## Etapa 3 — Monetización usuario (3-4 semanas estimadas)
 
+**Cambio de pasarela: Mercado Pago → IAP nativo (RevenueCat).** El plan
+original (`docs/plan-app-mantenimiento-auto.md`, desactualizado en este
+punto) asumía Mercado Pago para la suscripción de usuario. No es viable
+así: Apple (App Store Review Guideline 3.1.1) y Google Play exigen que
+una suscripción digital que desbloquea funciones dentro de la app use su
+sistema de pago nativo (StoreKit / Google Play Billing), no una pasarela
+de terceros embebida — Mercado Pago ahí corre riesgo real de rechazo en
+review. Mercado Pago sigue teniendo sentido para el lado talleres (Etapa
+4: cobro B2B por fichas destacadas/leads, fuera del contexto de "compra
+digital dentro de la app"), ahí no aplica la misma restricción.
+
+Impacto en lo ya construido: `subscriptions.mp_preapproval_id` y los
+comentarios de `db/schema.sql`/`db/rls_policies.sql` que hablan de
+"webhook de Mercado Pago" quedan desactualizados — hay que renombrar la
+columna (algo tipo `revenuecat_entitlement_id` o similar) y ajustar esos
+comentarios cuando arranque la integración real. El resto del diseño
+(sin fila = free, `status = 'active'` = pago, sin insert/update/delete
+para el cliente) no cambia — el webhook de RevenueCat reemplaza al de
+Mercado Pago en el mismo rol de "único escritor server-side".
+
 - ~~**Modelo de datos de suscripción**~~ — hecho: tabla `subscriptions`
   (`db/schema.sql`, aplicada a `auto-app-staging`) — sin fila = plan
   free, fila con `status = 'active'` = plan pago. Sin columna `plan`
@@ -147,9 +167,19 @@ Pendiente, en orden de bloqueo real:
   mismo alert "Función paga próximamente" que el export de PDF. 3 tests
   nuevos (`HomeScreen.test.tsx`). Usuarios ya existentes con 2+
   vehículos quedan como estaban — la policy solo afecta inserts nuevos.
-- Pendiente, en orden: (1) backend que reciba el webhook de Mercado Pago
-  y escriba en `subscriptions` (Edge Function de Supabase,
-  service_role); (2) checkout/flujo de alta de suscripción en la app.
+- ~~**Renombrar `mp_preapproval_id`**~~ — hecho: columna
+  `revenuecat_entitlement_id` en `db/schema.sql` (aplicada a
+  `auto-app-staging` con `alter table rename column`), tipo TS y
+  comentarios de `db/rls_policies.sql` actualizados.
+- Pendiente, en orden: (1) crear cuenta/proyecto en RevenueCat +
+  configurar productos de suscripción en App Store Connect y Google
+  Play Console (paso previo obligatorio, no técnico — requiere cuentas
+  de developer de Apple/Google que todavía no están armadas); (2)
+  backend que reciba el webhook de RevenueCat y escriba en
+  `subscriptions` (Edge Function de Supabase, service_role); (3)
+  integrar SDK de RevenueCat + paywall/flujo
+  de alta de suscripción en la app (`expo install react-native-purchases`
+  o el paquete Expo config plugin equivalente).
 
 ## Etapa 4 — Lado talleres (6-8 semanas estimadas)
 
