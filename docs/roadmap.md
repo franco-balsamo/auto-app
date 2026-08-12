@@ -4,7 +4,7 @@ Consolida `docs/plan-app-mantenimiento-auto.md` (sección 5, plan de
 producto) y `README.md` (checklist técnico) contra el estado real de
 avance. Actualizar cuando se cierre algún ítem grande.
 
-_Última actualización: 2026-08-10._
+_Última actualización: 2026-08-12._
 
 ## Dónde está parado el proyecto
 
@@ -37,10 +37,21 @@ Pendiente, en orden de bloqueo real:
    vehículos, 3 gastos, 13 talleres). Advisory pendiente y no bloqueante:
    `spatial_ref_sys` (tabla interna de PostGIS) sin RLS — bajo riesgo, no
    es dato de usuario.
-2. **Reemplazar `seed_workshops.sql`** (10 talleres de prueba en
-   Palermo/Almagro) por un script real contra Google Places API para la
-   zona de lanzamiento — bloqueante para salir del "huevo-gallina" del
-   directorio (sección 6 del plan de producto).
+2. ~~**Reemplazar `seed_workshops.sql`**~~ — hecho: `scripts/fetch_workshops.mjs`
+   genera el SQL real de talleres por zona (`node
+   scripts/fetch_workshops.mjs "<zona>"`, ver README). App pensada para
+   toda Argentina, no una sola ciudad fija — el script toma la zona como
+   argumento en vez de tenerla hardcodeada. Usa OpenStreetMap (Nominatim +
+   Overpass), no Google Places — se probó con Google Places primero pero
+   pide billing/tarjeta incluso para el free tier, se descartó. Probado
+   en vivo contra San Vicente (Partido de San Vicente, Buenos Aires): 8
+   talleres reales — corrido contra San Vicente (Partido de San Vicente,
+   Buenos Aires) y cargado a `auto-app-staging`: VTV/service, Lubricentro,
+   Electricidad del Automotor, Taller Mecánico, Taller de Radiadores,
+   Neumáticos del Sur, Neumáticos EZE, Gomería Korn (`source = 'osm'`,
+   conviven con los 13 `manual` de Palermo/Almagro, sin overlap de
+   nombres). `seed_workshops.sql` (fixture Palermo/Almagro) queda solo
+   para desarrollo local.
 3. ~~**Bundle identifier real + `eas init`**~~ — hecho:
    `com.balsamote96.autoapp` (iOS y Android) y proyecto EAS creado
    (`@fbalsamo/auto-app`, ver `app.json` → `extra.eas.projectId`).
@@ -123,8 +134,10 @@ Pendiente, en orden de bloqueo real:
 
 ## Próximo paso concreto
 
-El primer bloqueador real para tener algo "productivo" en el sentido más
-estricto (poder buildear y compartir un build de verdad) es el combo
-**bundle identifier + `eas init` + correr los SQL en Supabase si no están
-corridos**. Todo lo demás (OCR, assets, Sentry) es necesario antes de
-subir a stores pero no bloquea tener una build interna compartible.
+Directorio de San Vicente ya cargado (8 talleres reales de OSM en
+`auto-app-staging`) — el "huevo-gallina" del directorio está resuelto para
+la primera zona. Falta correr `scripts/fetch_workshops.mjs` por cada nueva
+zona a medida que la app se expanda a otras localidades. Lo único que
+queda en Etapa 1 es el ticket a support.github.com por CI (#8) y la beta
+cerrada (#9, cierre formal de la etapa) — ninguno de los dos bloquea tener
+una build interna compartible.

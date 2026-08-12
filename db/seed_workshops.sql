@@ -1,10 +1,9 @@
 -- =========================================================
--- Seed manual de talleres — correr DESPUÉS de schema.sql
+-- Seed manual de talleres (datos de prueba, Palermo/Almagro) — DEV only
 -- =========================================================
--- Carga inicial a mano para el piloto (zona Palermo/Almagro, CABA) para no
--- lanzar con el directorio vacío. Reemplazar por script contra Google
--- Places API cuando se defina la zona real de lanzamiento (ver README,
--- sección "Pendiente").
+-- Para la carga real usar scripts/fetch_workshops.mjs (Google Places API,
+-- ver README). Este archivo queda como fixture rápido para tener el
+-- directorio no-vacío en desarrollo local sin pegarle a la API externa.
 
 insert into workshops (name, category, address, lat, lng, phone, source) values
   ('Lubricentro Palermo',        'lubricentro',    'Av. Santa Fe 3450, CABA',        -34.5875, -58.4225, '011 4821-0001', 'manual'),

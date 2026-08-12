@@ -21,7 +21,10 @@ db/
   functions.sql       # RPC nearby_workshops + triggers (sync km/reminders, updated_at)
   rls_policies.sql    # seguridad por usuario (CRUD completo por tabla)
   storage.sql         # bucket vehicle-files + policies de storage.objects
-  seed_workshops.sql  # carga manual de talleres para no lanzar con el directorio vacío
+  seed_workshops.sql  # fixture DEV (Palermo/Almagro) — no usar para carga real
+
+scripts/
+  fetch_workshops.mjs # genera el SQL real de talleres vía Google Places API
 
 src/
   lib/supabase.ts          # cliente de Supabase
@@ -57,32 +60,33 @@ placeholder `com.tuempresa.autoapp` — reemplazar antes del primer build de
 store. `eas.projectId` todavía no está seteado — lo genera `eas init`
 (requiere login a una cuenta Expo).
 
-## Pendiente (siguiente paso lógico)
-1. Correr, en orden, en el SQL editor de Supabase: `schema.sql` →
-   `functions.sql` → `rls_policies.sql` → `storage.sql` →
-   `seed_workshops.sql` (funciones y policies dependen de columnas/tablas
-   del schema; storage depende de que `rls_policies.sql` ya haya corrido)
-2. Reemplazar `seed_workshops.sql` por un script contra Google Places API
-   por zona cuando se defina la zona real de lanzamiento
-3. Definir bundle identifier real, correr `eas init` y completar las env
-   vars de Supabase por environment en EAS
-4. Completar DSN de Sentry (`EXPO_PUBLIC_SENTRY_DSN`) y API key de Google
-   Maps para Android antes del primer build de store
-5. Una vez que exista una organización/proyecto en Sentry: agregar el
-   plugin `@sentry/react-native` a `app.json` (config plugin nativo, hoy
-   deliberadamente no incluido para no romper `eas build` sin
-   `SENTRY_AUTH_TOKEN`/org/project) para crash reporting nativo y upload
-   de source maps
-6. Foto de factura + OCR en `AddExpenseScreen.tsx` — requiere elegir
-   proveedor: ML Kit on-device (necesita build nativo, no anda en Expo Go)
-   o Google Vision API (necesita API key, sí anda en Expo Go)
-7. `app.json` no tiene `icon`/`splash` ni existe carpeta `assets/` — falta
-   el arte real (paleta grafito/papel crudo/ámbar del wireframe). Sin esto
-   `eas build` usa el ícono default de Expo, no es bloqueante pero no
-   queda para publicar en stores
-8. GitHub Actions no corre ningún workflow en este repo (permisos
-   `enabled: true`, workflow indexado como `active`, pero
-   `/actions/runs` siempre da 0 y no se crea check-suite de la app
-   `github-actions` ni con push ni con PR/merge) — parece un bloqueo a
-   nivel de cuenta de GitHub, no del repo. Pendiente ticket a
-   support.github.com
+## Talleres reales (OpenStreetMap)
+
+`db/seed_workshops.sql` es solo fixture de desarrollo. Para poblar el
+directorio con talleres reales de una zona:
+
+```bash
+node scripts/fetch_workshops.mjs "San Vicente, Partido de San Vicente, Buenos Aires, Argentina" > /tmp/workshops.sql
+# revisar /tmp/workshops.sql y correrlo en el SQL editor de Supabase
+```
+
+Usa Nominatim (geocoding) + Overpass (POIs) de OpenStreetMap — gratis, sin
+API key ni billing (a diferencia de Google Places, que pide tarjeta
+incluso para el free tier). Requiere `curl` instalado (transporte HTTP del
+script; el `fetch` nativo de Node falló contra `overpass-api.de` en algunos
+entornos sandboxeados). Nombres de zona ambiguos existen (ej. "San
+Vicente" aparece 5 veces en la provincia de Buenos Aires) — el script
+imprime en stderr qué lugar resolvió Nominatim; si no es el esperado, pasar
+el nombre completo del partido/localidad. Teléfono solo si está cargado en
+OSM (frecuentemente no); queda `null` si falta.
+
+## Pendiente
+
+Ver `docs/roadmap.md` — es la fuente única del estado real y próximos
+pasos, en orden de bloqueo. Este README no duplica esa lista para no
+desincronizarse.
+
+Para correr los SQL desde cero, orden fijo: `schema.sql` →
+`functions.sql` → `rls_policies.sql` → `storage.sql` → talleres reales
+(`scripts/fetch_workshops.mjs`, ver arriba) o `seed_workshops.sql` si es
+solo desarrollo local.
